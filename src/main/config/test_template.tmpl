@@ -1,0 +1,50 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: test_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: test_template.tmpl,v 1.4 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[%# Variables common to all products:
+%]
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% PROCESS tool_variables.tmpl -%]
+[% INCLUDE data_template_generic.tmpl datapath="${path}/data" -%]
+[% FOREACH product IN core.buildproducts() -%]
+[% pobject = product.value -%]
+[% safename = common.fixProductName(product.key) -%]
+[% type = pobject.type -%]
+[% SWITCH type -%]
+[% CASE "lib" -%]
+[% safepath %] += [% safename %]_all
+[% safepath %]_clean += [% safename %]_clean
+[% rvl = core.thisproductdata(product.key) -%]
+[% safename %]_files := [% core.productfiles() %]
+[% INCLUDE library_template_generic.tmpl -%]
+[% CASE "bin" -%]
+[% safepath %] += [% safename %]_all
+[% safepath %]_clean += [% safename %]_clean
+[% safepath %]_runtests += [% safename %]_runtests
+[% rvl = core.thisproductdata(product.key) %]
+[% INCLUDE test_template_generic.tmpl -%]
+[% CASE -%]
+[% common.unsupportedProductType () -%]
+[% END -%]
+[% END -%]
+.PHONY: [% safepath %] [% safepath %]_all [% safepath %]_clean [% safepath %]_help [% safepath %]_runtests
+[% safepath %] [% safepath %]_all: $([% safepath %]_data_copy_rule) $([% safepath %])
+	@:
+[% safepath %]_clean:: $([% safepath %]_clean)
+	$(call clean_path,$(SCRAM_INTwork)/[% path %])
+[% safepath %]_help:
+	@echo "Help for building binaries at [% path %]:"
+# Testing infrastructure:
+[% safepath %]_runtests: [% safepath %] $([% safepath %]_runtests)

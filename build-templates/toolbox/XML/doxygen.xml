@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="doxygen" version="1.4.1">
+<client>
+ <environment name="DOXYGEN_BASE"/>
+</client>
+<runtime name="PATH" value="$DOXYGEN_BASE/bin" type="path"/>
+</tool>
+</doc>

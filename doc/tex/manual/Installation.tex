@@ -1,0 +1,302 @@
+%%____________________________________________________________________ 
+%% File: Installation.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 17:05:05+0100
+%% Revision: $Id: Installation.tex,v 1.4.2.1 2007/03/02 13:54:00 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\chapter{Obtaining and Installing SCRAM}
+\label{ch:install}\index{SCRAM!obtaining and installing}
+The procedure for creating a central or local \scram\ release is
+straightforward. Normally, these steps would be performed by computing
+administrators but a user can also easily install \scram\ on his/her machine.
+The installation uses the standard tool\texttt{configure}, which can be run to create a Makefile.
+
+\section{Downloading and Installing from CVS}
+\index{SCRAM!downloading}
+
+Here is a guide to installing \scram. The sources can be installed
+anywhere (read access is required of course); the final installed
+\scram\ script must be locatable in the user path. The prerequisite
+Perl toolkit for handling templates is automatically downloaded and
+installed inside the source code tree so it is no longer necessary to
+support options to specifiy where it is located. This is the
+installation recipe:
+
+\begin{enumerate}
+\item Create a directory \texttt{SCRAM} in which you wish to keep your
+  \scram\ installation,\mbox{}
+  
+  \eg \texttt{mkdir SCRAM}
+  
+\item Change to the installation directory created above,\mbox{}
+  
+  \eg \texttt{cd SCRAM}
+  \index{CVSROOT}  
+\item Set the environment variable \texttt{CVSROOT} to point to the
+  CVS repository:\mbox{}
+
+  \scramcvsrepository
+  
+  Use \texttt{export} or \texttt{setenv} depending on whether your
+  shell is \texttt{zsh} or \texttt{tcsh}.
+  
+\item Log into the CVS server as user \textit{anonymous} (password is
+  \texttt{98passwd}):\mbox{}
+  
+  \texttt{cvs login}
+  
+\item Check out the version of \scram\ (for example, \thisrelease)
+  required:\mbox{}
+  
+  \texttt{cvs co -d \thisrelease~ -r \thisrelease ~SCRAM}
+  
+  Once a version of \scram\ has been installed, installation 
+  of any other version is achieved easily using the command\mbox{}
+  
+  \texttt{scram version} \textit{new-version}
+  
+  The final step is to run \texttt{autoconf} and \texttt{configure}
+  with the required options.
+  
+\item Go to the \texttt{Installation} directory of the version you have
+  just checked out,\mbox{}
+  
+  \eg \texttt{cd \thisrelease/Installation}
+  
+\item Run \texttt{configure}, supplying any options required for your installation.\mbox{}
+  
+  Several templates for the main script (\texttt{scram.pl.in}), the
+  install Makefile (\texttt{Makefile.in}) and for a local site package 
+  (\texttt{SCRAM\_SITE.pm.in}) are processed.
+  The site-dependent settings come from \texttt{SCRAM\_SITE.pm.in} and 
+  their values are passed using options to \texttt{configure}. This
+  template can be modified as desired to support features needed at each site.
+  
+  The \texttt{configure} script supports the following options:
+  
+  \begin{itemize}
+  \item location of the Perl executable\mbox{}\\ 
+    (\texttt{--with-perlexe=LOC}).
+    
+  \item directory where the SCRAM database file \texttt{project.lookup}
+    is located\mbox{}\\ (\texttt{--with-scramdb-dir=DIR}).
+    
+  \item the name of the site, 
+    \texttt{SCRAM\_SITENAME} (\texttt{--with-sitename=SITE}).
+    
+  \item the name of the installed SCRAM script in the installation directory\mbox{}\\ 
+    (\texttt{--with-install-name=NAME}).
+    
+  \item the directory where the SCRAM script will be located\mbox{}\\
+    (\texttt{--with-install-dir=DIR}).
+    
+  \end{itemize} 
+  A list of options can be viewed using the command \texttt{configure --help}.
+\end{enumerate}
+
+\ni Then run \texttt{make}~\texttt{install}.
+The installation process will have created a script called
+\texttt{scram} (the default name) in the install directory (normally \texttt{bin}).
+
+\ni If you wish to use \scram\ directly through web page links you will
+now need to configure your browser to use \scram.
+
+\section{Configuring Netscape to Use SCRAM}\label{sec:webbootstrap}
+\index{bootstrapping!using Netscape}
+\index{bootstrapping!using a web browser}
+This section assumes that you are using Netscape Navigator but should
+also apply to most web-browsers. Follow the checklist below--
+
+\begin{enumerate}
+\item From the \textit{Edit} menu, select
+  \textit{Preferences}\mylongrightarrow
+  \textit{Navigator}\mylongrightarrow\textit{Helper Applications}
+  
+\item Click on \textit{New} in the \textit{Helper Applications} window and
+  complete the form. For the \texttt{MIMEType} entry, type\mbox{}
+  
+  \textit{application/scram\_bootstrap}
+  
+\item Click on the application box to select it and enter
+  
+  \texttt{xterm -e scram --noreturn project -d \textsc{dir} -b \%s}
+  
+  where \textsc{dir} is the directory where you would like all
+  downloaded projects to reside (this directory must exist already).
+  
+\item Click the \texttt{OK} box to save it.
+\end{enumerate}
+
+\ni Now, whenever you click on a project bootstrap file your browser
+will start an \texttt{xterm} in which \scram\ will run the project
+installation procedure.
+
+\section{Controlling SCRAM Versions}
+\index{SCRAM!controlling versions of}
+The version of \scram\ used can be easily changed by using \scram\
+itself. The current version will be displayed by typing the command
+
+\texttt{scram version}
+ 
+\ni which will return a string with a format like \texttt{V1\_X\_X},
+where the \texttt{X}'s are digits representing the major and minor
+release numbers.  To switch to a different version, say \lastrelease, the
+command would be\mbox{}
+
+\texttt{scram version \lastrelease}.
+
+\ni If the specified version already exists in the central
+installation directory, it will be used. Otherwise, \scram\ will
+attempt to download the requested version from the CVS repository.
+The parameters for accessing a CVS server can be made site-specific by
+modifying \texttt{SCRAM\_SITE.pm.in} prior to following the
+installation procedure described in the previous section.
+
+\ni Installing a specific version will make that version the default
+(unless the link name is changed to something other than \scram\ or
+a different installation directory is chosen).
+In any case, this version can be overridden by
+setting an environment variable \texttt{SCRAM\_HOME} to point to the
+top-level directory of the required version:\mbox{}
+
+\eg \texttt{export SCRAM\_HOME=/home/user/SCRAM/\lastrelease}
+
+\ni will force \scram\ to use version \lastrelease\ throughout the current
+session.
+
+\ni \scram\ can be made to automatically select the correct version to
+use for a given project area, overridding any other version selection
+mechanism. To turn this feature on, simply create the file
+\texttt{scram\_version} in your project development/release
+\index{\texttt{scram\_version} file}
+configuration directory. The file should contain the required \scram\
+version tag. Any \scram\ command issued in that area is then directed
+to the correct version if it is installed. If the required version is
+not installed then a warning is issued and execution of the command
+continues using the current (default) version.
+
+\section{The SCRAM Database} 
+\index{SCRAM!project database}
+\index{\texttt{SCRAM\_USERLOOKUPDB} variable}
+\index{installing and removing projects}
+\index{\texttt{scramdb} directory}
+\index{\texttt{project.lookup} file}
+The \scram\ database file is called \texttt{project.lookup} and 
+contains lookup tables for the various projects that may be 
+installed on your system. The database is read
+during a \texttt{scram list} command.  Usually, the database file
+lives in the \texttt{scramdb} directory of
+your \scram\ installation area and is accessible to all \scram\
+versions. The database directory is created automatically at
+installation time. The default location can be overridden with the
+environment variable \texttt{SCRAM\_USERLOOKUPDB} which should be the
+full path to the \texttt{project.lookup} file.
+
+\begin{description}
+\item[Installing a project in the database]\mbox{}\\
+  A project can be installed into the database using the command
+
+\begin{scramcmd}{install}
+  \inbrackets{project\_name}~\inbrackets{project\_version}
+\end{scramcmd}
+
+\ni This command is usually executed in the project area of the
+project (and version) to be installed.  If the project name and
+version are given then these will be used in the database in place of
+the project defaults.
+
+
+\item[Removing an installed project from the database]\mbox{}\\
+  A project can be removed from the database using the command
+
+\begin{scramcmd}{remove}
+  \inbrackets{project\_name}~\inbrackets{project\_version}
+\end{scramcmd}
+
+\ni This command can be executed anywhere but will only work if the
+user has write permissions on the \texttt{project.lookup} file.
+
+\index{linking other SCRAM databases}
+\item[Linking other databases]\mbox{}\\
+  Other databases can be linked to the local installation database
+  using the command
+
+\begin{scramcmd}{db link}
+  ~\inbrackets{otherdb}
+\end{scramcmd}
+
+\ni This is often useful if a local copy of a project is maintained
+for development but a released project is required for access to
+configuration information and libraries. All projects listed in the
+linked database will be shown by \texttt{scram list}.  Note that
+\texttt{scram install} and \texttt{scram remove} commands will not
+affect databases that are linked in.
+\end{description}
+
+\section{Supporting Multiple Architectures}
+
+The site \scram\ installation can be customised to support multiple
+architectures (where the architecture is dependent only on the
+operating system specifics). Architectures that reflect a combination of
+compiler, compiler version and \texttt{OS} will be supported in later
+releases and are only supported as hard-coded strings.
+
+\ni The architecture can be determined automatically and is not limited to
+the mechanism used in \texttt{V0} versions of \scram\ which use only
+\texttt{uname} and required the environment variable
+\texttt{SCRAM\_ARCH} to be set to change to another architecture. 
+A principal check uses \texttt{Perl} internal variables to
+determine the name of the current platform. This value is then
+compared to an architecture map found at the end of
+\texttt{SCRAM\_SITE.pm.in} which can be freely edited-- \textit{before
+running the install procedure above}-- to support any
+desired architecture on which \texttt{Perl} will run. 
+The architecture map data looks like this:
+\begin{verbatim} 
+__DATA__; # Signals end of package
+######################################################
+#                                                    #
+# These are the architecture mappings for this site  #
+#                                                    #
+######################################################
+linux:&linux_check(2,3,4,"intel") && &is_slc_version(4) && &is_64bit():"slc4_ia64_gcc345"
+linux:&linux_check(2,3,4,"amd") && &is_slc_version(4) && &is_64bit():"slc4_amd64_gcc345"
+linux:&linux_check(2,3,2,"amd") && &is_slc_version(3) && &is_64bit():"slc3_amd64_gcc345"
+linux:&linux_check(2,3,4,"intel") && &is_slc_version(4):"slc4_ia32_gcc345"
+linux:&linux_check(2,3,2,"intel"):"slc3_ia32_gcc323"
+darwin:&check_is_osx_panther():"osx103_gcc33"
+darwin:&check_is_osx_tiger() && &is_ppc() :"osx104_ppc_gcc40"
+darwin:&check_is_osx_tiger():"osx104_ia32_gcc40"
+
+\end{verbatim}
+
+\ni The first element in each line of data is the native platform. The
+second element is the name of a Perl subroutine (which can be
+customised to suit), found in \texttt{SCRAM\_SITE.pm}, which will 
+be run and will return true or false depending on whether some criteria (\eg versions of
+\texttt{glibc}, the name of an \texttt{OS} release \etc) are satisfied. If they
+are, the final element will be returned as the name of the
+architecture. This will be set once as soon as \scram\ is run.
+Setting the environment variable \texttt{SCRAM\_ARCH} or using
+\texttt{scram -arch X <CMD>} will override this value.
+Combinations of subroutines can be run also as in the second example above.
+Any number of architectures can be listed but the last set
+of parameters that fully match will be used to give the current
+architecture name.
+
+\newpage % A new page please
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "SCRAM-manual"
+%%% End:
+
+%%____________________________________________________________________ 
+%% End of Installation.tex
+%%____________________________________________________________________ 
+%%  

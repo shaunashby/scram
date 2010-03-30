@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Coin3D" version="2.4.4">
+<info url="http://www.coin3d.org"/>
+<lib name="Coin"/>
+<client>
+ <environment name="COIN3D_BASE"/>
+ <environment name="LIBDIR" default="$COIN3D_BASE/lib"/>
+ <environment name="INCLUDE" default="$COIN3D_BASE/include"/>
+</client>
+<use name="OpenGL"/>
+</tool>
+</doc>

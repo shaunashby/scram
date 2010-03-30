@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="oracle" version="10.2.0.2">
+<lib name="clntsh"/>
+<lib name="occi"/>
+<lib name="nnz10"/>
+<client>
+ <environment name="ORACLE_BASE"/>
+ <environment name="ORACLE_ADMINDIR"/>
+ <environment name="LIBDIR" value="$ORACLE_BASE/lib"/>
+ <environment name="BINDIR" value="$ORACLE_BASE/bin"/>
+ <environment name="INCLUDE" value="$ORACLE_BASE/include"/>
+</client>
+<runtime name="PATH" value="$BINDIR" type="path"/>
+<runtime name="NLS_LANG" value="american_america.WE8ISO8859P9"/>
+<runtime name="NLS_DATE_FORMAT" value="DD-MON-FXYYYY"/>
+<runtime name="ORA_NLS33" default="$ORACLE_BASE/ocommon/nls/admin/data"/>
+<runtime name="ORACLE_HOME" default="$ORACLE_BASE"/>
+<runtime name="TNS_ADMIN" default="$ORACLE_ADMINDIR"/>
+</tool>
+</doc>

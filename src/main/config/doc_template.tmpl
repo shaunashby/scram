@@ -1,0 +1,80 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: doc_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:28:03+0100
+# Revision: $Id: doc_template.tmpl,v 1.4 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% USE common = CustomPlugin(core) -%]
+[% safepath %]_all: [% safepath %]
+[% IF suffix -%]
+[% safepath %]:
+	@:
+[% ELSIF common.shouldSkipForDoc() -%]
+[% safepath %]_subdirs+=[% core.safesubdirs() %]
+[% safepath %]: $([% safepath %]_subdirs)
+	@:
+[% ELSE -%]
+[% safepath %]_outdir = $(WORKINGDIR)/[% path %]
+[% safepath %]_srcdir = $(LOCALTOP)/[% path %]
+[% safepath %]_filesuffixes = tex
+[% safepath %]_filesrcdirs = $([% safepath %]_srcdir)
+[% safepath %]_doc_files = $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_filesuffixes),$(dir)/*.$(ext)))))
+[% safepath %]_dviobjs := $(addprefix $([% safepath %]_outdir)/, $(addsuffix .$(DVISUFFIX), $(basename $(notdir $([% safepath %]_doc_files)))))
+[% safepath %]_ps := $(addprefix $([% safepath %]_outdir)/, $(addsuffix .$(PSSUFFIX), $(basename $(notdir $([% safepath %]_doc_files)))))
+[% safepath %]_pdf := $(addprefix $([% safepath %]_outdir)/, $(addsuffix .$(PDFSUFFIX), $(basename $(notdir $([% safepath %]_doc_files)))))
+
+.PRECIOUS: $([% safepath %]_dviobjs) $([% safepath %]_ps) $([% safepath %]_pdf)
+.PHONY: [% safepath %]_all [% safepath %] [% safepath %]_runtests [% safepath %]_test_runner
+[% safepath %]_subdirs+=[% core.safesubdirs() %]
+
+[% safepath %]: [% safepath %]_manuals 
+	@echo ">> Documentation built at [% path %]"
+
+[% core.name() %]_clean [% safepath %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help::
+	@echo "Help for building documentation at [% path %]:"
+
+ifneq ($(strip $([% safepath %]_dviobjs)),)
+[% safepath %]_manuals: $([% safepath %]_outdir)/.manuals.stamp
+
+$([% safepath %]_outdir)/%.ps: $([% safepath %]_outdir)/%.dvi
+	@echo "Generating PostScript manual $*.ps"
+	@cd $([% safepath %]_srcdir); \
+	$(DVIPS) -o $(LOCALTOP)/$@ $(LOCALTOP)/$^ >/dev/null 2>&1
+
+$([% safepath %]_outdir)/%.pdf: $([% safepath %]_outdir)/%.ps
+	@echo "Generating PDF manual $*.pdf"
+	@$(PS2PDF) $^ $@ >/dev/null 2>&1
+
+$([% safepath %]_outdir)/%.dvi: $([% safepath %]_srcdir)/%.tex
+	@echo "Running LaTeX on $*.tex"
+	@mkdir -p $(@D)
+	@cd $([% safepath %]_srcdir); \
+	$(LATEX) $^ >/dev/null 2>&1 </dev/null; \
+	$(LATEX) $^ >/dev/null 2>&1 </dev/null; \
+	mv $(patsubst %.tex, %.dvi, $^) $(LOCALTOP)/$@; \
+	rm -f *.aux *.lof *.log *.toc *.out *.qst
+
+$([% safepath %]_outdir)/.manuals.stamp: $([% safepath %]_ps) $([% safepath %]_pdf)
+	@touch $@
+	@echo "Installing manuals"; \
+	mkdir -p $(LOCALTOP)/doc/manuals >/dev/null; \
+	cp $([% safepath %]_outdir)/*.ps $([% safepath %]_outdir)/*.pdf $(LOCALTOP)/doc/manuals
+
+else
+[% safepath %]_manuals: 
+	@echo "No latex files to process at [% path%]"
+endif
+[% END -%]
+

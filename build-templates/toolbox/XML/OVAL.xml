@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="OVAL" version="3_5_0">
+<client>
+ <environment name="OVAL_BASE"/>
+</client>
+
+<architecture name="slc3_ia32_gcc323">
+ <runtime name="OVAL_FLAVOR" value="Linux"/>
+</architecture>
+
+<architecture name="slc3_amd64_gcc323">
+ <runtime name="OVAL_FLAVOR" value="Linux"/>
+</architecture>
+
+<architecture name="osx103_gcc33">
+ <runtime name="OVAL_FLAVOR" value="osx"/>
+</architecture>
+
+<runtime name="PATH" value="$OVAL_BASE/bin" type="path"/>
+</tool>
+</doc>

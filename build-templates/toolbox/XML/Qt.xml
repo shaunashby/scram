@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Qt" version="3.3.6">
+<info url="http://www.trolltech.com/products/qt.html"/>
+<lib name="qt-mt"/>
+<client>
+ <environment name="QT_BASE"/>
+ <environment name="LIBDIR" default="$QT_BASE/lib"/>
+ <environment name="INCLUDE" default="$QT_BASE/include"/>
+</client>
+<flags CPPDEFINES="QT_ALTERNATE_QTSMANIP QT_CLEAN_NAMESPACE QT_THREAD_SUPPORT"/>
+<runtime name="PATH" value="$QT_BASE/bin" type="path"/>
+<use name="X11"/>
+</tool>
+</doc>

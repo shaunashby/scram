@@ -1,0 +1,4 @@
+[%# -*- makefile -*-
+-%]
+[% USE core = PluginCore -%]
+[% INCLUDE src2store_copy.tmpl filter='*' store="addprefix \$(SCRAMSTORENAME_SHARE_HTDOCS)/,\$(patsubst src/%,%,$path)" -%]

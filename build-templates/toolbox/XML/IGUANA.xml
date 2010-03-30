@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="IGUANA" version="IGUANA_6_15_1" type="scram">
+<info url="http://iguana.web.cern.ch/iguana/"/>
+<client>
+ <environment name="IGUANA_BASE"/>
+ <environment name="LIBDIR" value="$IGUANA_BASE/lib/$SCRAM_ARCH"/>
+ <environment name="MODULEDIR" value="$IGUANA_BASE/module/$SCRAM_ARCH"/>
+ <environment name="INCLUDE" value="$IGUANA_BASE/src"/>
+ <environment name="IGUANA_ARCH_INCLUDES" value="$IGUANA_BASE/include/$SCRAM_ARCH"/>
+ <environment name="INCLUDE" value="$IGUANA_ARCH_INCLUDES"/>
+</client>
+<runtime name="COIN_SHOW_FPS_COUNTER" value="1"/>
+<runtime name="PATH" value="$IGUANA_BASE/bin/$SCRAM_ARCH" type="path"/>
+<runtime name="PYTHONPATH" value="$IGUANA_BASE/python/$SCRAM_ARCH" type="path"/>
+<runtime name="PYTHONPATH" value="$LIBDIR" type="path"/>
+<runtime name="SEAL_PLUGINS" value="$MODULEDIR" type="path"/>
+<runtime name="IGUANA_IVS" value="$IGUANA_BASE/share/ivs" type="path"/>
+<runtime name="IGUANA_PATH" value="$IGUANA_BASE" type="path"/>
+<use name="qt"/>
+</tool>
+</doc>

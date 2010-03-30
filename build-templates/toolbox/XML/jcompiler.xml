@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="jcompiler" version="1.5.0.p6" type="compiler">
+<client>
+ <environment name="JAVA_BASE"/>
+ <environment name="JAVAC" value="$JAVA_BASE/bin/javac"/>
+</client>
+<runtime name="JAVA_HOME" default="$JAVA_BASE"/>
+<flags JAVAC_="$(JAVAC)"/>
+<flags JAVAC_o="$(JAVAC) -O"/>
+<flags JAVAC_d="$(JAVAC) -g"/>
+<flags SCRAM_COMPILER_NAME="jsdk150p6"/>
+<flags SCRAM_LANGUAGE_TYPE="JAVA"/>
+</tool>
+</doc>

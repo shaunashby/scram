@@ -1,0 +1,78 @@
+PROJECT_NAME           = SCRAM
+PROJECT_NUMBER         = SCRAM_HEAD
+
+OUTPUT_LANGUAGE        = English
+
+EXTRACT_ALL            = YES
+
+JAVADOC_AUTOBRIEF      = YES
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+
+INTERNAL_DOCS          = NO
+STRIP_CODE_COMMENTS    = YES
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = /afs/cern.ch/user/s/sashby/w2/SCRAM/SCRAM_HEAD/src
+SHOW_INCLUDE_FILES     = NO
+TAB_SIZE               = 8
+
+GENERATE_BUGLIST       = YES
+GENERATE_TESTLIST      = YES
+GENERATE_TODOLIST      = YES
+SHOW_USED_FILES        = YES
+VERBATIM_HEADERS       = NO
+
+ALPHABETICAL_INDEX     = YES
+COLS_IN_ALPHA_INDEX    = 5
+
+CASE_SENSE_NAMES       = YES
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_FORMAT            = "$file:$line: $text"
+WARN_LOGFILE           = "Installation/doxygen.log"
+
+INPUT                  = /afs/cern.ch/user/s/sashby/w2/SCRAM/SCRAM_HEAD/src
+RECURSIVE              = YES
+EXCLUDE                = CVS test config
+FILE_PATTERNS          = *.p[dlm] *.pod *.dox *.doxy *.lin *.sh *.xslt
+EXCLUDE_PATTERNS       = blib *.sh *.cgi test_* test* *test *_test*
+
+FILTER_PATTERNS        = *.p[lm]=DoxyPerl.sh
+
+SOURCE_BROWSER         = YES
+FILTER_SOURCE_FILES    = NO
+
+EXAMPLE_PATH           = .
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+SEARCH_INCLUDES        = YES
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = /afs/cern.ch/user/s/sashby/w2/SCRAM/SCRAM_HEAD/doc/refman/html
+HTML_FILE_EXTENSION    = .htm
+
+HAVE_DOT               = YES
+DOT_PATH               = 
+DOT_IMAGE_FORMAT       = png
+MAX_DOT_GRAPH_WIDTH    = 512
+MAX_DOT_GRAPH_HEIGHT   = 356
+GENERATE_LEGEND        = YES
+DOT_CLEANUP            = YES
+
+CLASS_DIAGRAMS         = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+TEMPLATE_RELATIONS     = NO
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+GRAPHICAL_HIERARCHY    = YES
+
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = NO
+
+SEARCHENGINE           = NO

@@ -1,0 +1,291 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: library_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: library_template.tmpl,v 1.4 2005/05/27 08:29:31 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% variables = core.variables() -%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+[% FOREACH product IN core.buildproducts() -%]
+[% pobject = product.value -%]
+[% type = pobject.type -%]
+[%# Check type. We do this for normal lib builds because some src dirs might contain e.g. stubs for 2nd library:
+%]
+[% SWITCH type -%]
+[% CASE "lib" -%]
+[% lib_safename = product.key -%]
+[% rvl = core.thisproductdata(lib_safename) -%]
+[% lib_files = core.productfiles() %]
+[% lib_name = core.productname() %]
+[% INCLUDE extra_library_template.tmpl %]
+[% CASE "app" -%]
+[% app_safename = product.key -%]
+[% rvl = core.thisproductdata(app_safename) %]
+[% INCLUDE application_template_generic.tmpl %]
+[% END -%]
+[% END -%]
+# Dump out any data from MAKEFILE tags:
+[% core.data("MAKEFILE") %]
+
+# See if we're dealing with a SEAL plugin:
+[% safepath %]_SEAL_PLUGIN_NAME:=[% core.flags("SEAL_PLUGIN_NAME") %]
+
+ifneq ($(strip $([% safepath %]_SEAL_PLUGIN_NAME)),)
+SEAL_PLUGIN_DIR:=$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)
+[% safepath %]_register_seal_plugin: $(SEAL_PLUGIN_DIR)/$([% safepath %]_SEAL_PLUGIN_NAME).reg
+	@:
+
+$(SEAL_PLUGIN_DIR)/%.reg:
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@echo 'module $(patsubst %.reg,lib%.so,$(@F))' > $@
+	@echo "--- Registered SEAL plugin $(patsubst %.reg,%,$(@F))"
+
+[% safepath %]_deregister_seal_plugin:
+	@/bin/rm -f $(SEAL_PLUGIN_DIR)/$([% safepath %]_SEAL_PLUGIN_NAME).reg
+else
+[% safepath %]_register_seal_plugin:
+	@:
+[% safepath %]_deregister_seal_plugin:
+	@:
+endif
+
+# Compiler flags for this build env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+[% safepath %]_CXXFLAGS   := $(CXXFLAGS) [% core.flags("CXXFLAGS") %] 
+[% safepath %]_CCFLAGS    := $(CCFLAGS) [% core.flags("CCFLAGS") %] 
+[% safepath %]_FFLAGS     := $(FFLAGS) [% core.flags("FFLAGS") %] 
+[% safepath %]_CPPDEFINES := $(CPPDEFINES) [% core.flags("CPPDEFINES") %] 
+[% safepath %]_INCLUDE:=$(INCLUDE) [% core.data("INCLUDE") %]
+[% safepath %]_LIB:=[% core.data("LIB") %]
+[% safepath %]_LIBDIR:=$(LIBDIR) [% core.data("LIBDIR") %]
+[% safepath %]_LDLIBS:=$(addprefix -l,$([% safepath %]_LIB))
+[% safepath %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_INCLUDE))
+[% safepath %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_CPPDEFINES)) $([% safepath %]_ALL_INCLUDES) 
+[% safepath %]_LDFLAGS:= $(LD_FLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_LIBDIR)) $([% safepath %]_LDLIBS)
+[% safepath %]_objdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_deps := [% core.pkdeps() %]
+[% safepath %]_filesuffixes:= cc cpp cxx C c f f77 F F77
+[% safepath %]_filesrcdirs = $([% safepath %]_srcdir)
+[% safepath %]_files += $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_filesuffixes),$(dir)/*.$(ext)))))
+[% safepath %]_objs := $(addprefix $([% safepath %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $(notdir $([% safepath %]_files)))))
+
+# Add sources generated using Flex/Bison:
+[% safepath %]_lex_files+=$(wildcard $(foreach dir,$([% safepath %]_filesrcdirs), $(dir)/*.l))
+[% safepath %]_yacc_files+=$(wildcard $(foreach dir,$([% safepath %]_filesrcdirs), $(dir)/*.y))
+
+[% safepath %]_generated_hdr+=$(addprefix $([% safepath %]_objdir)/, $(addsuffix .h, $(basename $(notdir $([% safepath %]_yacc_files)))))
+
+[% safepath %]_generated_src+=$(addprefix $([% safepath %]_objdir)/, $(addsuffix .cc, $(basename $(notdir $([% safepath %]_lex_files)))))
+[% safepath %]_generated_src+=$(addprefix $([% safepath %]_objdir)/, $(addsuffix .cc, $(basename $(notdir $([% safepath %]_yacc_files)))))
+
+# If there are generated source files, add the INCLUDE to CPPFLAGS:
+ifneq ($(strip $([% safepath %]_generated_src)),)
+[% safepath %]_CPPFLAGS+= -I$(LOCALTOP)/$(WORKINGDIR)/src
+endif
+
+[% safepath %]_generated_objs+=$(patsubst %.cc, %.$(OBJEXT), $([% safepath %]_generated_src))
+[% safepath %]_objs+= $([% safepath %]_generated_objs)
+
+
+# CODEGEN rules: magic for code generated from python script in the project:
+[% safepath %]_codegen_dir=[% core.flags("CODEGENPATH") %]
+
+ifneq ($(strip $([% safepath %]_codegen_dir)),)
+CODEGENPY=python $([% safepath %]_codegen_dir)/bin/codegen.py
+CODEGENTEMPLATES=$([% safepath %]_codegen_dir)/templates
+[% safepath %]_codegen_desc_files+=$(wildcard $(foreach dir,$([% safepath %]_filesrcdirs), $(dir)/*.desc.xml))
+
+# Suffixes of produced source files:
+[% safepath %]_codegen_srcsuffixes=.cpp .reg.cpp _T_Context.cpp
+
+# Suffixes of produced header files:
+[% safepath %]_codegen_hdrsuffixes=.h Record.h
+
+# Names of the classes of objects (from *.desc.xml file names):
+[% safepath %]_codegen_object_names= $(foreach file,$([% safepath %]_codegen_desc_files), $(notdir $(patsubst %.desc.xml, %, $(file))))
+
+# The generated source/header files:
+[% safepath %]_codegen_src+=$(addprefix $([% safepath %]_objdir)/,$(foreach objname,$([% safepath %]_codegen_object_names), \
+			$(foreach suffix, $([% safepath %]_codegen_srcsuffixes), $(objname)$(suffix))))
+
+[% safepath %]_codegen_hdr+=$(addprefix $([% safepath %]_objdir)/, $(foreach objname,$([% safepath %]_codegen_object_names), \
+			$(foreach suffix, $([% safepath %]_codegen_hdrsuffixes), $(objname)$(suffix))))
+
+# Add the generated sources for the retriever class:
+[% safepath %]_codegen_rtvr_src+=$(addprefix $([% safepath %]_objdir)/, [% core.name() %]Retriever.cpp)
+[% safepath %]_codegen_rtvr_hdr+=$(addprefix $([% safepath %]_objdir)/, [% core.name() %]Retriever.h)
+
+# Modify the INCLUDE path to pick up generated header files:
+ifneq ($(strip $([% safepath %]_codegen_src)),)
+[% safepath %]_CPPFLAGS+= -I$(LOCALTOP)/$(WORKINGDIR)/src
+endif
+
+# The generated object files:
+[% safepath %]_codegen_objs+= $(patsubst %.cpp, %.$(OBJEXT), $([% safepath %]_codegen_src))
+[% safepath %]_codegen_objs+= $(patsubst %.cpp, %.$(OBJEXT), $([% safepath %]_codegen_rtvr_src))
+
+[% safepath %]_objs+= $([% safepath %]_codegen_objs)
+
+.PRECIOUS: $([% safepath %]_codegen_src) $([% safepath %]_codegen_hdr) $([% safepath %]_codegen_objs)
+$([% safepath %]_objs): $([% safepath %]_codegen_hdr)
+
+$([% safepath %]_objdir)/%.h $([% safepath %]_objdir)/%Record.h $([% safepath %]_objdir)/%.cpp $([% safepath %]_objdir)/%.reg.cpp $([% safepath %]_objdir)/%_T_Context.cpp: $([% safepath %]_srcdir)/%.desc.xml
+	@mkdir -p $(@D)
+	@echo ">> Generating file $(notdir $@) from class descriptor $*"
+	$(VERB)$(CODEGENPY) [% core.name() %] $([% safepath %]_objdir) $<
+
+$([% safepath %]_objdir)/[% core.name() %]Retriever.$(OBJEXT): $([% safepath %]_objdir)/[% core.name() %]Retriever.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/[% core.name() %]Retriever.cpp $([% safepath %]_objdir)/[% core.name() %]Retriever.h: $([% safepath %]_codegen_hdr)
+	@:
+
+$([% safepath %]_objdir)/%.reg.$(OBJEXT): $([% safepath %]_objdir)/%.reg.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%_T_Context.$(OBJEXT): $([% safepath %]_objdir)/%_T_Context.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_objdir)/%.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+endif
+# End of CODEGEN rules
+
+# Tell make not to delete the generated source files:
+.PRECIOUS: $([% safepath %]_generated_src)
+.PRECIOUS: $([% safepath %]_generated_objs)
+$([% safepath %]_objs): $([% safepath %]_generated_hdr)
+
+[%# Add support for dictionaries. This template will add the newly-generated files to
+# the list of files for this directory (library). It should also take care of the 
+# object file creation step and add these to safepath_objs:
+%]
+[% INCLUDE dict_template.tmpl -%]
+
+# Variable containing all lib targets:
+all_libraries += [% safepath %]
+
+# Configuration dependencies:
+[% FOREACH bf IN core.bfdeps() -%]
+[% safepath %]_BuildFile+=[% bf.key %]
+[% END -%]
+[% safepath %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath%]_BuildFile)
+
+# Protect against no files scenario:
+ifneq ($(strip $([% safepath %]_objs)),)
+.PHONY : [% safepath %] [% safepath %]_lib [% core.name() %] shared
+shared [% safepath %]_all: [% safepath %]
+
+[% safepath %]: $([% safepath %]_deps) [% safepath %]_lib $(all_[% safepath %]_extra_libraries)
+
+# Rule for package build (a shortcut or something more easily typed):
+[% core.name() %]: [% safepath %]
+
+# Library rule:
+[% safepath %]_lib: [% safepath %]_build_dict $([% safepath %]_objdir)/lib[% core.name() %].$(SHAREDSUFFIX) [% safepath %]_register_seal_plugin
+
+$([% safepath %]_objdir)/lib[% core.name() %].$(SHAREDSUFFIX): $([% safepath %]_objs)
+	@echo ">> Building shared library $@"
+	$(VERB)$(CXX) $([% safepath %]_CXXFLAGS) $(CXXSHAREDFLAGS) $^ -o $@ -shared $([% safepath %]_LDFLAGS)
+	$(VERB)$(copy_lib_to_main_productstore)
+
+[% safepath %]_clean:: [% safepath %]_deregister_seal_plugin $(all_[% safepath %]_extra_libraries_clean)
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help:: $(all_[% safepath %]_extra_libraries_help)
+	@echo "Help for building libraries at [% path %]:"
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cc $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cpp $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cxx $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.C $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# For C:
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.c $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CC)  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CFLAGS) $([% safepath %]_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@
+
+# For FORTRAN:
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.f $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -MMD -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.f77 $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -MMD -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.F $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -MMD -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.F77 $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -MMD -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+# Rules for Flex/Bison:
+YACC:=bison
+LEX:=flex
+
+$([% safepath %]_objdir)/%lex.cc: $([% safepath %]_srcdir)/%lex.l
+	@mkdir -p $(@D)
+	@echo "Flex: Generating $@ from $<"
+	$(VERB)$(LEX) -o$@ -P$(patsubst %lex,%,$*) $<
+
+$([% safepath %]_objdir)/%parse.cc $([% safepath %]_objdir)/%parse.h: $([% safepath %]_srcdir)/%parse.y
+	@mkdir -p $(@D)
+	@echo "Bison: Generating $@ from $<"
+	$(VERB)$(YACC) -p$(patsubst %parse,%,$*) --defines=$(basename $@).h -o$(basename $@).cc $<
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_objdir)/%.cc $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling generated source $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_objs:.$(OBJEXT)=.d),$d)
+else
+shared [% safepath %]_all: [% safepath %]
+[% safepath %]:
+	@echo "No source files to compile. Nothing to be done at [% path %]."
+endif

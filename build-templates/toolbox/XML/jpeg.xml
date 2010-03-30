@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="jpeg" version="6b">
+<info url="http://www.ijg.org/"/>
+<lib name="jpeg"/>
+<client>
+ <environment name="JPEG_BASE"/>
+ <environment name="LIBDIR" default="$JPEG_BASE/lib"/>
+ <environment name="INCLUDE" default="$JPEG_BASE/include"/>
+</client>
+</tool>
+</doc>

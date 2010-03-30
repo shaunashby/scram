@@ -1,0 +1,10 @@
+*.aux
+*.log
+*.idx
+*.lof
+SCRAM-manual.dvi
+SCRAM-manual.ilg
+SCRAM-manual.ind
+SCRAM-manual.toc
+SCRAM-manual.pdf
+SCRAM-manual.ps

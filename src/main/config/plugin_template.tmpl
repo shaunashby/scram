@@ -1,0 +1,11 @@
+[%# -*-Makefile-*-
+-%]
+[% common.checkSealPluginFlag() -%]
+[% IF plugin_name != "" -%]
+[% safename %]_plugindir := $(LOCALTOP)/$([% plugindir %])
+[% safename %]_all+=$([% safename %]_plugindir)/[% plugin_name %].reg
+$([% safename %]_plugindir)/[% plugin_name %].reg: $([% safename %]_objdir)/$(MODULE_PREFIX)[% plugin_name %].$(SHAREDSUFFIX)
+	$(call register_plugin,[% plugin_name %],[% logname %])
+[% safename %]_clean::
+	$(call clean_prod,$([% plugindir %])/[% plugin_name %].reg)
+[% END -%]

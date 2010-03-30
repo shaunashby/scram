@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Xerces-c" version="2.7.0">
+<info url="http://xml.apache.org/xerces-c/"/>
+<lib name="xerces-c"/>
+<client>
+ <environment name="XERCES_C_BASE"/>
+ <environment name="INCLUDE" default="$XERCES_C_BASE/include"/>
+ <environment name="LIBDIR" default="$XERCES_C_BASE/lib"/>
+</client>
+</tool>
+</doc>

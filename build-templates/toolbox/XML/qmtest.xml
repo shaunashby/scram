@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="QMTest" version="2.3.0">
+<client>
+ <environment name="QMTEST_BASE"/>
+</client>
+<runtime name="PATH" value="$QMTEST_BASE/bin" type="path"/>
+</tool>
+</doc>

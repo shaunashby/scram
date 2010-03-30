@@ -1,0 +1,75 @@
+%%____________________________________________________________________ 
+%% File: ReleaseNotes.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 17:09:41+0100
+%% Revision: $Id: ReleaseNotes.tex,v 1.6 2007/02/27 16:16:01 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\chapter{SCRAM Release Notes}\label{ch:releasenotes}
+\index{SCRAM!release notes}
+
+\section{Version \thisrelease}
+\begin{itemize}
+\item Full support for \texttt{XML} in all \scram\ documents. Older
+  document markup is no longer supported (it is therefore a requirement
+  that all documents are migrated to proper \texttt{XML} syntax before
+  this release can be used).
+
+\item Added support for new types of build products: \texttt{plugin} and
+  \texttt{unittest}. How these are handled by the Build System can be
+  controlled via the build templates.
+
+\item Bug fixes (\#XXXX, \ldots). Full details can be found in the bug
+  digest.
+
+\end{itemize}
+
+
+\section{Version \lastrelease}
+\begin{itemize}
+\item Numerous bug fixes (\#14639, \#15207, \#15675, \#18267,\#18783,\#78421,\#19551). Full details
+  can be found in the bug digest.
+  
+\end{itemize}
+
+\section{Version V1\_0\_2}
+\begin{itemize}
+\item Numerous bug fixes (\#7570, \#7645, \#7731, \#8040,
+  \#8067, \#8328, \#10306, \#10623, \#10774, \#11402). Full details
+  can be found in the bug digest.
+
+\item Support for XML in \buildfile s and full support for XML
+  \buildfile s in the build system. Note that a command is
+  provided to automatically migrate all \buildfile s from old 
+  style to XML tag syntax. The build command also has the option to parse XML
+  versions of \buildfile s. Note that, eventually, support for
+  old (non-XML) syntax will be dropped.
+  
+\item Fix to install process to permit correct operation on 64-bit machines.
+  
+\item Updated \scram\ manual (\LaTeX) and doxygen reference manual
+  (useful for reporting bugs or for people interested in
+  browsing the code). Note that \texttt{doxygen} v1.4.0 (at least) should
+  be used. 
+  
+\item Added \scram\ completion function for the \texttt{ZSH}
+  environment. This allows automatic completion of current
+  \scram\ commands and command arguments.
+  
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%% The REAL End %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "SCRAM-manual"
+%%% End:
+
+%%____________________________________________________________________ 
+%% End of ReleaseNotes.tex
+%%____________________________________________________________________ 
+%%  

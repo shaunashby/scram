@@ -1,0 +1,13 @@
+# -*- toolbox -*-
+<doc type=Configuration::BootStrapProject version=1.0>
+<project name=SCRATCHTEST version=1_0>
+<base url="cvs://cmscvs.cern.ch/cvs_server/repositories/SCRAMToolBox?auth=pserver&user=anonymous&passkey=AA_:yZZ3e&version=CMS_111_3">
+<download url="cvs:?module=SCRAMToolBox/CMSconfigs" name=config/site>
+</base>
+
+<Config dir=config>
+<base url="file:config">
+<download url="file:/" name="config">
+<RequirementsDoc name=config/requirements>
+</base>
+</project>

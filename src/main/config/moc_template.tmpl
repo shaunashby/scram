@@ -1,0 +1,27 @@
+[%# -*-Makefile-*-
+-%]
+[% IF common.shouldRunMoc() -%]
+[% safename %]_CPPFLAGS     += -I$([% safename %]_objdir)/moc
+[% safename %]_QTMOC        := $(QT_BASE)/bin/moc
+[% safename %]_QTMOC_INCDIR := [% mocinc %]
+[% safename %]_QTMOC_SRCDIR := [% mocsrc %]
+[% safename %]_MOC          := [% mocfiles %]
+[% safename %]_FILE_MOC	    := $(foreach suffix,h cc cpp cxx,\
+                                 $(patsubst %.$(suffix),%_$(suffix)_moc.cc,$(filter %.$(suffix),$([% safename %]_MOC))))
+[% safename %]_FILE_MOC_SRC := $(filter %_cc_moc.cc %_cpp_moc.cc %_cxx_moc.cc, $([% safename %]_FILE_MOC))
+[% safename %]_FILE_MOC_INC := $(filter-out $([% safename %]_FILE_MOC_SRC),$([% safename %]_FILE_MOC))
+[% safename %]_files        += $([% safename %]_FILE_MOC_INC)
+[% safename %]_objs         += $(addprefix $([% safename %]_objdir)/moc/, $(addsuffix .$(OBJEXT), $(basename $(notdir $([% safename %]_FILE_MOC_INC)))))
+[% safename %]_MOC_FILE     := $(addprefix $([% safename %]_objdir)/moc/, $([% safename %]_FILE_MOC))
+[% safename %]_precompile   += $([% safename %]_MOC_FILE)
+$([% safename %]_objdir)/moc/%.$(OBJEXT): $([% safename %]_objdir)/moc/%.cc
+	$(call compile_cxx,[% safename %],[% logname %])
+[% FOREACH ext = [ "h" "cc" "cpp" "cxx" ] -%]
+[% IF ext == "h" %]
+$([% safename %]_objdir)/moc/%_h_moc.cc: $([% safename %]_QTMOC_INCDIR)/%.h $([% safename %]_objdir)/config
+	$(call generate_moc,[% safename %],[% logname %])
+[% END -%]
+$([% safename %]_objdir)/moc/%_[% ext %]_moc.cc: $([% safename %]_QTMOC_SRCDIR)/%.[% ext %] $([% safename %]_objdir)/config
+	$(call generate_moc,[% safename %],[% logname %])
+[% END -%]
+[% END -%]

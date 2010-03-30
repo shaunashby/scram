@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="mysql" version="5.0.18">
+<Lib name="mysqlclient"/>
+<client>
+ <environment name="MYSQL_BASE"/>
+ <environment name="LIBDIR" default="$MYSQL_BASE/lib/mysql"/>
+ <environment name="MYSQL_BINDIR" default="$MYSQL_BASE/bin"/>
+ <environment name="INCLUDE" default="$MYSQL_BASE/include"/>
+</client>
+<runtime name="PATH" value="$MYSQL_BINDIR" type="path"/>
+</tool>
+</doc>

@@ -1,0 +1,30 @@
+dnl ____________________________________________________________________ 
+dnl  File: configure.in, produce configure script for SCRAM installation
+dnl  
+dnl  Process this file with autoconf to produce a configure script.
+dnl ____________________________________________________________________ 
+dnl   
+dnl  Author:  <Shaun.Ashby@cern.ch>
+dnl  Update: 2004-03-17 20:28:54+0100
+dnl  Revision: $Id: configure.in,v 1.7.4.1 2007/03/02 13:53:59 sashby Exp $ 
+dnl 
+dnl  Copyright: 2004 (C) 
+dnl 
+dnl --------------------------------------------------------------------
+AC_REVISION($Id: configure.in,v 1.7.4.1 2007/03/02 13:53:59 sashby Exp $)
+AC_INIT(SCRAM_SITE.pm.in)
+dnl Init vars:
+AC_SCRAM_INIT
+dnl Checks for programs. Check for Perl and GNU Make:
+AC_SCRAM_CHECK_PERL
+AC_SCRAM_CHECK_MAKE
+dnl Optional settings:
+AC_SET_PERLEXE
+AC_SET_SCRAM_SITENAME
+AC_SET_SCRAM_LOOKUPDB
+dnl Do installation steps:
+AC_SCRAM_EXE_NAME
+AC_SCRAM_INSTALL_DIR
+AC_SCRAM_MAN_INSTALL_DIR
+dnl Output a nice SCRAM_SITE.pm and our scram.pl script plus the testsuite script:
+AC_OUTPUT(SCRAM_SITE.pm scram.pl testsuite.pl Makefile ../doc/doxygen/Doxyfile)

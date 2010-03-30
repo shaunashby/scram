@@ -1,0 +1,50 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: Package_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:28:03+0100
+# Revision: $Id: Package_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE package = PluginCore -%]
+[% variables = package.variables() -%]
+[%# Get all variable defs from tools:
+%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+# SUFFIX (unmatched part of ClassPath) is [% suffix %]. Package name is [% package.name() %]:
+[% PERL -%]
+my $NAME=$stash->get('package')->name();
+if ($NAME eq 'doc' || $NAME eq 'domain')
+  {
+  $stash->set('skip','skip');
+  }
+[% END -%]
+.PHONY: [% safepath %]_all [% safepath %]
+[% safepath %]_all: [% safepath %]
+[% IF suffix -%]
+[% safepath %]:
+	@echo "Nothing to be done for [% package.name() %]/[% suffix %]:"
+[% ELSIF skip -%]
+[% safepath %]_subdirs+=[% package.safesubdirs() %]
+[% safepath %]: $([% safepath %]_subdirs)
+	@:
+[% ELSE %]
+[% safepath %]_subdirs+=[% package.safesubdirs() %]
+all_packages+=[% package.name() %]
+[% package.name() %] [% safepath %]: $([% safepath %]_subdirs)
+	@echo ">> Package [% package.name() %] built"
+
+[% package.name() %]_clean [% safepath %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help::
+	@echo "Help for building at [% path %]:"
+[% END -%]

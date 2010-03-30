@@ -1,0 +1,48 @@
+# -*- makefile -*-
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% safename = safepath -%]
+[% PROCESS logging_template.tmpl -%]
+[% PROCESS tool_variables.tmpl -%]
+[% safename %]_objdir := $(WORKINGDIR)/[% path %]
+.PHONY: [% safename %] [% safename %]_all [% safename %]_clean
+[% safename %]_all: [% safename %]
+[% safename %]_help:
+	@echo "Help for building java at [% path %]"
+[% safename %]_clean::
+	@for f in $([% safename %]_objdir)/* ; do \
+	  rm -rf $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)/`basename $$f` ; \
+	done
+	$(call clean_path,$([% safename %]_objdir))
+[% PROCESS buildfile_check.tmpl packremoveonly=1 -%]
+[% safename %]_javadir := $(LOCALTOP)/[% path %]
+[% safename %]_SKIP_FILES := CVS BuildFile [% core.flags("SKIP_FILES") %]
+[% safename %]_SKIP_SCRIPTS := [% core.flags("SKIP_SCRIPTS") %]
+[% safename %]_FILE_COMPILATION_ORDER := $(subst :, " ",[% core.flags("FILE_COMPILATION_ORDER") %])
+[% safename %]_files1 := [% core.flags("FILE_COMPILATION_ORDER") %]
+[% safename %]_files2 := $(notdir $(wildcard $(foreach dir,$([% safename %]_javadir),$(dir)/*.java)))
+[% safename %]_files1 := $(filter-out $([% safename %]_SKIP_FILES), $([% safename %]_files1))
+[% safename %]_files1 := $(filter-out $([% safename %]_SKIP_SCRIPTS), $([% safename %]_files1))
+[% safename %]_files2 := $(filter-out $([% safename %]_SKIP_FILES), $([% safename %]_files2))
+[% safename %]_files2 := $(filter-out $([% safename %]_SKIP_SCRIPTS), $([% safename %]_files2))
+[% safename %]_files := $([% safename %]_files1)
+[% safename %]_files += $([% safename %]_files2)
+ifneq ($(strip $([% safename %]_files)),)
+[% safename %]_workdir    := $([% safename %]_objdir)/[% safename %]
+[% safename %]_workfiles1 := $(addprefix $([% safename %]_workdir)/, $(addsuffix .done, $(basename $(notdir $([% safename %]_files1)))))
+[% safename %]_workfiles2 := $(addprefix $([% safename %]_workdir)/, $(addsuffix .done, $(basename $(notdir $([% safename %]_files2)))))
+# Configuration dependencies:
+[% safename %]_BuildFile  := [% common.getLocalBuildFile() %]
+ifneq ($(strip $([% safename %]_BuildFile)),)
+[% safename %]_CONFIGDEPS := $(CONFIGDEPS) $(WORKINGDIR)/cache/bf/[% safename %]
+endif
+[% INCLUDE buildfile_check.tmpl packremoveonly=0 -%]
+.NOTPARALLEL: $([% safename %]_workfiles1)
+[% safename %]_precompile += $([% safename %]_workfiles1)
+[% safename %]_compile += $([% safename %]_workfiles2)
+[% INCLUDE gcc_compile_rules.tmpl type="java" -%]
+else
+[% safename %]:
+	@:
+endif

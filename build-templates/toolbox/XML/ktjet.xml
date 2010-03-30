@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+ <tool name="ktjet" version="1.06">
+  <info url="http://hepforge.cedar.ac.uk/ktjet"/>
+  <lib name="KtEvent"/>
+  <client>
+   <environment name="KTJET_BASE"/>
+   <environment name="LIBDIR" default="$KTJET_BASE/lib"/>
+   <environment name="INCLUDE" default="$KTJET_BASE/include"/>
+  </client>
+  <flags CPPDEFINES="KTDOUBLEPRECISION"/>
+ </tool>
+</doc>

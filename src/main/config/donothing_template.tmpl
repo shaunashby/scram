@@ -1,0 +1,6 @@
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+.PHONY : [% safepath %]_all [% safepath %] [% safepath %]_clean [% safepath %]_help
+[% safepath %] [% safepath %]_all [% safepath %]_clean [% safepath %]_help:
+	@echo "Building skipped via donothing_template"
+

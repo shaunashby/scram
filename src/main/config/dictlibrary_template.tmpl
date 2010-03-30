@@ -1,0 +1,35 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: dictlibrary_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-03-12 10:30:42+0100
+# Revision: $Id: dictlibrary_template.tmpl,v 1.2 2004/12/10 13:41:44 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE library = PluginCore %]
+[% variables = library.variables() %]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+# Extra files:
+[% safepath%]_files += capabilities.cpp 
+
+# Set the name of this dictionary library:
+[% safepath%]_libname = lib$([% library.name() %])Dict
+
+[% safepath%]_all: [% safepath %]
+[% safepath%]:
+	@echo ">> Dictionary library $([% safepath%]_libname) built"
+
+# Cleaning and help:
+[% safepath %]_clean:
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help:
+	@echo "Help for building at [% path %]:"

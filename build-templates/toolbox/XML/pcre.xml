@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="pcre" version="4.4">
+<info url="http://www.pcre.org"/>
+<lib name="pcre"/>
+<client>
+ <environment name="PCRE_BASE"/>
+ <environment name="LIBDIR" default="$PCRE_BASE/lib"/>
+ <environment name="INCLUDE" default="$PCRE_BASE/include"/>
+</client>
+</tool>
+</doc>

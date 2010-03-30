@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Boost_python" version="1.33.1">
+<info url="http://www.boost.org"/>
+<lib name="boost_python-gcc-mt"/>
+<client>
+ <environment name="BOOST_PYTHON_BASE"/>
+ <environment name="PYSTE_EXEC" default="$BOOST_PYTHON_BASE/lib/python2.4/site-packages/Pyste/pyste.py"/>
+ <environment name="LIBDIR" default="$BOOST_PYTHON_BASE/lib"/>
+ <environment name="INCLUDE" default="$BOOST_PYTHON_BASE/include"/>
+</client>
+<use name="elementtree"/>
+<use name="gccxml"/>
+<use name="python"/>
+</tool>
+</doc>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="zlib" version="1.1.4">
+<lib name="z"/>
+<client>
+ <environment name="ZLIB_BASE"/>
+ <environment name="INCLUDE" default="$ZLIB_BASE/include"/>
+ <environment name="LIBDIR"  default="$ZLIB_BASE/lib"/>
+</client>
+</tool>
+</doc>

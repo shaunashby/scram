@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="TkOnlineSw" version="1.2">
+<info url="http://www.cern.ch/"/>
+<lib name="ICUtils"/>
+<lib name="Fed9UUtils"/>
+<lib name="DeviceDescriptions"/>
+<lib name="Fed9UDeviceFactory"/>
+<client>
+ <environment name="TKONLINESW_BASE"/>
+ <environment name="LIBDIR" value="$TKONLINESW_BASE/lib"/>
+ <environment name="INCLUDE" value="$TKONLINESW_BASE/include"/>
+</client>
+<use name="xerces-c"/>
+<use name="oracle"/>
+</tool>
+</doc>

@@ -1,0 +1,26 @@
+<doc type=Configuration::BootStrapProject version=1.0>
+<project name=[% PROJECT_NAME %] version=[% PROJECT_VERSION %]>
+<base url="cvs://isscvs.cern.ch/local/reps/scramtoolbox?auth=pserver&user=anonymous&passkey=AA_:yZZ3e&version=[% CONFIG_VERSION %]">
+<download url="cvs:?module=SCRAMToolBox/CMSconfigs" name=config/site>
+</base>
+
+Stand-alone [% PROJECT_NAME %] boot file for the nightly build system
+
+<Config dir=config>
+<base url="file:config">
+<download url="file:/" name="config">
+<RequirementsDoc name=config/requirements>
+</base>
+[% FOREACH data_entry IN packagelist -%]
+[% thePackageName = data_entry.key -%]
+[% thePackageData = data_entry.value -%]
+[% FOREACH item IN thePackageData -%]
+[% subsystem = item.key -%]
+[% tag = item.value -%]
+<base url="cvs://cmscvs.cern.ch/cvs_server/repositories/CMSSW?auth=pserver&user=anonymous&passkey=AA_:yZZ3e&version=[% tag %]">
+<download url="cvs:?module=[% thePackageName %]" name="src/[% subsystem %]">
+[% END -%]
+</base>
+[% END -%]
+
+</project>

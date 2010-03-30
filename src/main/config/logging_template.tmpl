@@ -1,0 +1,9 @@
+[%# -*-Makefile-*-
+-%]
+[% common.outputLogging() -%]
+[% logname %]_startlog = $(FORCE_BUILD_START)
+[% logname %]_endlog   = $(FORCE_BUILD_END)
+[% IF logfile != "" -%]
+[% logname %]_startlog += (
+[% logname %]_endlog   += ) >> [% logfile %] 2>&1
+[% END -%]

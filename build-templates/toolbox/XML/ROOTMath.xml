@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="ROOTMath" version="5.14.00b-pCMS1">
+<info url="http://root.cern.ch/root/"/>
+<lib name="MathCore"/>
+<lib name="MathMore"/>
+<use name="ROOTCore"/>
+</tool>
+</doc>

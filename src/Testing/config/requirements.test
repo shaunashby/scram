@@ -1,0 +1,7 @@
+<doc type=BuildSystem::Requirements version=2.0>
+<base url="file:SCRAMToolBox">
+<include url="file:/Configuration">
+<select name=cxxcompiler>
+<select name=boost>
+<select name=UUID>
+</base>

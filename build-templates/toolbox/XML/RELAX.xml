@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="RELAX" version="RELAX_1_1_7">
+<client>
+ <environment name="RELAX_BASE"/>
+ <environment name="LIBDIR" default="$RELAX_BASE/lib"/>
+</client>
+<use name="ROOTRflx"/>
+<runtime name="SEAL_PLUGINS" value="$LIBDIR/modules" type="path"/>
+</tool>
+</doc>

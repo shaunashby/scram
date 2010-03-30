@@ -1,0 +1,358 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: extra_library_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: extra_library_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% core.data("MAKEFILE") %]
+[% variables = core.variables() -%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+
+# See if we're dealing with a SEAL plugin:
+[% safepath %]_[% lib_safename %]_SEAL_PLUGIN_NAME:=[% core.flags("SEAL_PLUGIN_NAME") %]
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_SEAL_PLUGIN_NAME)),)
+SEAL_PLUGIN_DIR:=$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)
+[% safepath %]_[% lib_safename %]_register_seal_plugin: $(SEAL_PLUGIN_DIR)/$([% safepath %]_[% lib_safename %]_SEAL_PLUGIN_NAME).reg
+	@:
+
+$(SEAL_PLUGIN_DIR)/%.reg:
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@echo 'module $(patsubst %.reg,lib%.so,$(@F))' > $@
+	@echo "--- Registered SEAL plugin $(patsubst %.reg,%,$(@F))"
+
+[% safepath %]_[% lib_safename %]_deregister_seal_plugin:
+	@/bin/rm -f $(SEAL_PLUGIN_DIR)/$([% safepath %]_[% lib_safename %]_SEAL_PLUGIN_NAME).reg
+else
+[% safepath %]_[% lib_safename %]_register_seal_plugin:
+	@:
+[% safepath %]_[% lib_safename %]_deregister_seal_plugin:
+	@:
+endif
+
+# Compiler flags for this build env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+[% safepath %]_[% lib_safename %]_CXXFLAGS   := $(CXXFLAGS) [% core.flags("CXXFLAGS") %] 
+[% safepath %]_[% lib_safename %]_CCFLAGS    := $(CCFLAGS) [% core.flags("CCFLAGS") %] 
+[% safepath %]_[% lib_safename %]_FFLAGS     := $(FFLAGS) [% core.flags("FFLAGS") %] 
+[% safepath %]_[% lib_safename %]_CPPDEFINES := $(CPPDEFINES) [% core.flags("CPPDEFINES") %] 
+
+[% safepath %]_[% lib_safename %]_INCLUDE:=$(INCLUDE) [% core.data("INCLUDE") %]
+[% safepath %]_[% lib_safename %]_LIB:=[% core.data("LIB") %]
+[% safepath %]_[% lib_safename %]_LIBDIR:=$(LIBDIR) [% core.data("LIBDIR") %]
+[% safepath %]_[% lib_safename %]_LDLIBS:=$(addprefix -l,$([% safepath %]_[% lib_safename %]_LIB))
+[% safepath %]_[% lib_safename %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_[% lib_safename %]_INCLUDE))
+[% safepath %]_[% lib_safename %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_[% lib_safename %]_CPPDEFINES)) $([% safepath %]_[% lib_safename %]_ALL_INCLUDES)
+[% safepath %]_[% lib_safename %]_LDFLAGS:= $(LD_FLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_[% lib_safename %]_LIBDIR)) $([% safepath %]_[% lib_safename %]_LDLIBS)
+
+[% safepath %]_[% lib_safename %]_objdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_[% lib_safename %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_[% lib_safename %]_deps := [% core.pkdeps() %]
+[% safepath %]_[% lib_safename %]_filesrcdirs = $([% safepath %]_[% lib_safename %]_srcdir)
+[% safepath %]_[% lib_safename %]_files := [% lib_files %]
+[% safepath %]_[% lib_safename %]_objs := $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% lib_safename %]_files))))
+
+[%# Add support for dictionaries. This template will add the newly-generated files to
+# the list of files for this directory (library). It should also take care of the 
+# object file creation step and add these to safepath_lib_safename_objs:
+%]
+.PHONY: [% safepath %]_[% lib_safename %]_build_dict [% safepath %]_[% lib_safename %]_lcgdict [% safepath %]_[% lib_safename %]_rootdict
+[% safepath %]_[% lib_safename %]_build_dict: [% safepath %]_[% lib_safename %]_lcgdict [% safepath %]_[% lib_safename %]_rootdict
+
+# Variables:
+LCGDICT           = $(SEAL_BINDIR)/lcgdict
+ROOTCINT_BIN_DIR  = $(ROOTCORE_BASE)/root/bin
+ROOTCINT          = $(ROOTCINT_BIN_DIR)/rootcint
+IDINDICT          = $(LOCALTOP)/$(SCRAM_SOURCEDIR)/CARF/domain/scripts/idIndict.py
+
+# Figure out whether we should do something here for ROOT or LCG dictionaries:
+[% safepath %]_[% lib_safename %]_DICT_TOP          = $([% safepath %]_[% lib_safename %]_srcdir)
+[% safepath %]_[% lib_safename %]_DICT             := $(notdir $(wildcard $([% safepath %]_[% lib_safename %]_DICT_TOP)/*_def.xml))
+[% safepath %]_[% lib_safename %]_ROOTDICT         := $(notdir $(wildcard $([% safepath %]_[% lib_safename %]_DICT_TOP)/*LinkDef.h))
+
+# Check to see if the source file list contains a directory. If it does, we can look for 
+# LCGDICT and ROOTDICT files. Strip off the final /:
+[% safepath %]_EXTRA_STUB_DIR:=$(wordlist 1, 1,$(patsubst %/,%,$(dir $(basename $([% safepath %]_[% lib_safename %]_files)))))
+
+ifneq ($(strip $([% safepath %]_EXTRA_STUB_DIR)),) # There was an extra subdir
+# Figure out whether we should do something here for ROOT or LCG dictionaries in stubs:
+[% safepath %]_[% lib_safename %]_stub_DICT_TOP          = $([% safepath %]_[% lib_safename %]_srcdir)/$([% safepath %]_EXTRA_STUB_DIR)
+[% safepath %]_[% lib_safename %]_stub_DICT             := $(notdir $(wildcard $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/*_def.xml))
+[% safepath %]_[% lib_safename %]_stub_ROOTDICT         := $(notdir $(wildcard $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/*LinkDef.h))
+
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_stub_ROOTDICT)),) # If we have a *LinkDef.h, we can do something
+
+[% safepath %]_[% lib_safename %]_ROOTFILE_DICT     = $(patsubst %.h, %.cc, $([% safepath %]_[% lib_safename %]_stub_ROOTDICT))
+[% safepath %]_[% lib_safename %]_ROOTFILE_DICT_OBJ = $(patsubst %.cc, %.$(OBJEXT), $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT))
+[% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT))
+[% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT_OBJ))
+
+[% safepath %]_[% lib_safename %]_rdictfiles:=$([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT)
+[% safepath %]_[% lib_safename %]_files+=$([% safepath %]_[% lib_safename %]_rdictfiles)
+[% safepath %]_[% lib_safename %]_rdictobjs+=$(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% lib_safename %]_rdictfiles)))
+[% safepath %]_[% lib_safename %]_objs+=$([% safepath %]_[% lib_safename %]_rdictobjs)
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_rdictfiles)),)
+# The ROOT dictionary rule:
+[% safepath %]_[% lib_safename %]_rootdict: $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT) $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ)
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.cc: $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/%.h
+	@mkdir -p $(@D)
+	$(ROOTCINT) -f $@ -c -p -DGNU_SOURCE $([% safepath %]_[% lib_safename %]_CPPFLAGS) $<
+	mv $@ $@.base 
+	if [ -e $(LOCALTOP)/src/Utilities/Configuration/interface/Architecture_inc ] ; then  \
+	cat $(LOCALTOP)/src/Utilities/Configuration/interface/Architecture_inc $< $@.base > $@; \
+	else  	cat $(RELEASETOP)/src/Utilities/Configuration/interface/Architecture_inc $< $@.base > $@; fi
+	rm -f $@.base
+
+$([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ): $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT)
+	@mkdir -p $(@D)
+	@echo ">> Compiling for root dictionary: $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+else
+[% safepath %]_[% lib_safename %]_rootdict:
+	@echo "No dictionary files to compile. Nothing to be done for rootdict."
+endif
+endif
+
+# LCG dictionary support in stubs:
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_stub_DICT)),) # If we have a classes_def.xml, we can do something
+
+[% safepath %]_[% lib_safename %]_H_DICT            = classes.h
+[% safepath %]_[% lib_safename %]_FILE_DICT         = classes_dict.cpp
+[% safepath %]_[% lib_safename %]_FILE_ID           = classes_ids.cc
+[% safepath %]_[% lib_safename %]_FULL_FILE_DICT    = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_FILE_DICT))
+[% safepath %]_[% lib_safename %]_FULL_FILE_ID      = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_FILE_ID))
+[% safepath %]_[% lib_safename %]_dictfiles:=$([% safepath %]_[% lib_safename %]_FULL_FILE_DICT) $([% safepath %]_[% lib_safename %]_FULL_FILE_ID)
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_dictfiles)),)
+.PHONY: [% safepath %]_[% lib_safename %]_lcgdict
+
+[% safepath %]_[% lib_safename %]_files+=$([% safepath %]_[% lib_safename %]_dictfiles)
+[% safepath %]_[% lib_safename %]_dictobjs+=$(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% lib_safename %]_dictfiles)))
+[% safepath %]_[% lib_safename %]_objs+=$([% safepath %]_[% lib_safename %]_dictobjs)
+
+# The LCG dictionary rule:
+[% safepath %]_[% lib_safename %]_lcgdict: $([% safepath %]_[% lib_safename %]_dictfiles) $([% safepath %]_[% lib_safename %]_dictobjs)
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_dict.cpp: $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/classes.h $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/classes_def.xml 
+	@echo ">> Building LCG dict from header file $< "
+	@mkdir -p $(@D)
+	$(LCGDICT) $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/classes.h -s $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/classes_def.xml -o$([% safepath %]_[% lib_safename %]_objdir) --deep --pool -DCMS_DICT_IMPL -D_REENTRANT -DGNU_SOURCE $([% safepath %]_[% lib_safename %]_CPPFLAGS)
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc: $([% safepath %]_[% lib_safename %]_stub_DICT_TOP)/classes_def.xml
+	@mkdir -p $(@D)
+	touch $([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc
+
+# The objects. Note that here, the sources are found in the object filedir (since they were generated and put there):
+$([% safepath %]_[% lib_safename %]_objdir)/classes_dict.$(OBJEXT): $([% safepath %]_[% lib_safename %]_objdir)/classes_dict.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling for dictionary: $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_ids.$(OBJEXT): $([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc
+	@mkdir -p $(@D)
+	@echo ">> Compiling for idIndict: $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+#
+else
+[% safepath %]_[% lib_safename %]_lcgdict:
+	@echo "No dictionary files to compile. Nothing to be done for lcgdict."
+endif
+endif
+
+
+
+else
+# These rules are for LinkDef.h/class_def.xml found in srcdir, not EXTRA_STUB_DIR:
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_DICT)),) # If we have a classes_def.xml, we can do something
+
+[% safepath %]_[% lib_safename %]_H_DICT            = classes.h
+[% safepath %]_[% lib_safename %]_FILE_DICT         = classes_dict.cpp
+[% safepath %]_[% lib_safename %]_FILE_ID           = classes_ids.cc
+[% safepath %]_[% lib_safename %]_FULL_FILE_DICT    = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_FILE_DICT))
+[% safepath %]_[% lib_safename %]_FULL_FILE_ID      = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_FILE_ID))
+[% safepath %]_[% lib_safename %]_dictfiles:=$([% safepath %]_[% lib_safename %]_FULL_FILE_DICT) $([% safepath %]_[% lib_safename %]_FULL_FILE_ID)
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_dictfiles)),)
+.PHONY: [% safepath %]_[% lib_safename %]_lcgdict
+
+[% safepath %]_[% lib_safename %]_files+=$([% safepath %]_[% lib_safename %]_dictfiles)
+[% safepath %]_[% lib_safename %]_dictobjs+=$(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% lib_safename %]_dictfiles)))
+[% safepath %]_[% lib_safename %]_objs+=$([% safepath %]_[% lib_safename %]_dictobjs)
+
+# The LCG dictionary rule:
+[% safepath %]_[% lib_safename %]_lcgdict: $([% safepath %]_[% lib_safename %]_dictfiles) $([% safepath %]_[% lib_safename %]_dictobjs)
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_dict.cpp: $([% safepath %]_[% lib_safename %]_DICT_TOP)/classes.h $([% safepath %]_[% lib_safename %]_DICT_TOP)/classes_def.xml 
+	@echo ">> Building LCG dict from header file $< "
+	@mkdir -p $(@D)
+	$(LCGDICT) $([% safepath %]_[% lib_safename %]_DICT_TOP)/classes.h -s $([% safepath %]_[% lib_safename %]_DICT_TOP)/classes_def.xml -o$([% safepath %]_[% lib_safename %]_objdir) --deep --pool -DCMS_DICT_IMPL -D_REENTRANT -DGNU_SOURCE $([% safepath %]_[% lib_safename %]_CPPFLAGS)
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc: $([% safepath %]_[% lib_safename %]_DICT_TOP)/classes_def.xml
+	@mkdir -p $(@D)
+	touch $([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc
+
+# The objects. Note that here, the sources are found in the object filedir (since they were generated and put there):
+$([% safepath %]_[% lib_safename %]_objdir)/classes_dict.$(OBJEXT): $([% safepath %]_[% lib_safename %]_objdir)/classes_dict.cpp
+	@mkdir -p $(@D)
+	@echo ">> Compiling for dictionary: $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/classes_ids.$(OBJEXT): $([% safepath %]_[% lib_safename %]_objdir)/classes_ids.cc
+	@mkdir -p $(@D)
+	@echo ">> Compiling for idIndict: $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+#
+else
+[% safepath %]_[% lib_safename %]_lcgdict:
+	@echo "No dictionary files to compile. Nothing to be done for lcgdict."
+endif
+endif
+
+# Now the checks for ROOT dict:
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_ROOTDICT)),) # If we have a *LinkDef.h, we can do something
+
+[% safepath %]_[% lib_safename %]_ROOTFILE_DICT     = $(patsubst %.h, %.cc, $([% safepath %]_[% lib_safename %]_ROOTDICT))
+[% safepath %]_[% lib_safename %]_ROOTFILE_DICT_OBJ = $(patsubst %.cc, %.$(OBJEXT), $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT))
+[% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT))
+[% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ = $(addprefix $([% safepath %]_[% lib_safename %]_objdir)/, $([% safepath %]_[% lib_safename %]_ROOTFILE_DICT_OBJ))
+
+[% safepath %]_[% lib_safename %]_rdictfiles:=$([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT)
+[% safepath %]_[% lib_safename %]_files+=$([% safepath %]_[% lib_safename %]_rdictfiles)
+[% safepath %]_[% lib_safename %]_rdictobjs+=$(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% lib_safename %]_rdictfiles)))
+[% safepath %]_[% lib_safename %]_objs+=$([% safepath %]_[% lib_safename %]_rdictobjs)
+
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_rdictfiles)),)
+# The ROOT dictionary rule:
+[% safepath %]_[% lib_safename %]_rootdict: $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT) $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ)
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.cc: $([% safepath %]_[% lib_safename %]_DICT_TOP)/%.h
+	@mkdir -p $(@D)
+	$(ROOTCINT) -f $@ -c -p -DGNU_SOURCE $([% safepath %]_[% lib_safename %]_CPPFLAGS) $<
+	mv $@ $@.base 
+	if [ -e $(LOCALTOP)/src/Utilities/Configuration/interface/Architecture_inc ] ; then  \
+	cat $(LOCALTOP)/src/Utilities/Configuration/interface/Architecture_inc $< $@.base > $@; \
+	else  	cat $(RELEASETOP)/src/Utilities/Configuration/interface/Architecture_inc $< $@.base > $@; fi
+	rm -f $@.base
+
+$([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT_OBJ): $([% safepath %]_[% lib_safename %]_ROOTFULL_FILE_DICT)
+	@mkdir -p $(@D)
+	@echo ">> Compiling for root dictionary: $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+else
+[% safepath %]_[% lib_safename %]_rootdict:
+	@echo "No dictionary files to compile. Nothing to be done for rootdict."
+endif
+endif
+#
+# End of EXTRA_STUB_DIR rules
+#
+endif
+
+# Variable containing all lib targets:
+all_libraries += [% safepath %]_[% lib_safename %]_all
+all_libraries_clean += [% lib_safename %]_clean
+all_libraries_help += [% lib_safename %]_help
+
+all_[% safepath %]_extra_libraries += [% safepath %]_[% lib_safename %]_all
+all_[% safepath %]_extra_libraries_clean += [% lib_safename %]_clean
+all_[% safepath %]_extra_libraries_help += [% lib_safename %]_help
+
+# Configuration dependencies:
+[% FOREACH bf IN core.bfdeps() -%]
+[% safepath %]_[% lib_safename %]_BuildFile+=[% bf.key %]
+[% END -%]
+[% safepath %]_[% lib_safename %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath%]_BuildFile)
+
+# Protect against no files scenario:
+ifneq ($(strip $([% safepath %]_[% lib_safename %]_files)),)
+.PHONY : [% safepath %]_[% lib_safename %] [% safepath %]_[% lib_safename %]_lib [% lib_name %] [% lib_safename %]_clean [% lib_safename %]_help
+[% safepath %]_[% lib_safename %]_all: [% safepath %]_[% lib_safename %]
+[% safepath %]_[% lib_safename %]: $([% safepath %]_[% lib_safename %]_deps) [% safepath %]_[% lib_safename %]_lib
+
+# Rule for package build (a shortcut or something more easily typed):
+[% lib_name %]: [% safepath %]_[% lib_safename %]
+
+# Library rule:
+[% safepath %]_[% lib_safename %]_lib: [% safepath %]_[% lib_safename %]_build_dict $([% safepath %]_[% lib_safename %]_objdir)/lib[% lib_name %].$(SHAREDSUFFIX) [% safepath %]_[% lib_safename %]_register_seal_plugin
+
+$([% safepath %]_[% lib_safename %]_objdir)/lib[% lib_name %].$(SHAREDSUFFIX): $([% safepath %]_[% lib_safename %]_objs)
+	@echo ">> Building extra shared library $@"
+	$(VERB)$(CXX) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $(CXXSHAREDFLAGS) $^ -o $@ -shared $([% safepath %]_[% lib_safename %]_LDFLAGS)
+	$(VERB)$(copy_lib_to_main_productstore)
+
+[% lib_safename %]_clean:: [% safepath %]_[% lib_safename %]_deregister_seal_plugin
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% lib_safename %]_help::
+	@echo "Help for building extra library at [% path %]:"
+	@echo "(LIB NAME = [% lib_name %], SOURCES = [% lib_files %])" 
+	@echo ""
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.cc $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.cpp $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.cxx $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.C $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CXXFLAGS) $([% safepath %]_[% lib_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# For C:
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.c $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CC)  -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_CFLAGS) $([% safepath %]_[% lib_safename %]_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@
+
+# For FORTRAN:
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.f $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_FFLAGS) $([% safepath %]_[% lib_safename %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.f77 $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_FFLAGS) $([% safepath %]_[% lib_safename %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.F $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_FFLAGS) $([% safepath %]_[% lib_safename %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% lib_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% lib_safename %]_srcdir)/%.F77 $([% safepath %]_[% lib_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_[% lib_safename %]_CPPFLAGS) $([% safepath %]_[% lib_safename %]_FFLAGS) $([% safepath %]_[% lib_safename %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_[% lib_safename %]_objs:.$(OBJEXT)=.d),$d)
+else
+[% safepath %]_[% lib_safename %]_all: [% safepath %]_[% lib_safename %]
+[% safepath %]_[% lib_safename %]:
+	@echo "No source files to compile. Nothing to be done for lib[% lib_name%]$(SHAREDSUFFIX)"
+endif

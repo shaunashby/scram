@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="expat" version="2.0.0">
+<lib name="expat"/>
+<client>
+ <environment name="EXPAT_BASE"/>
+ <environment name="LIBDIR" default="$EXPAT_BASE/lib"/>
+ <environment name="INCLUDE" default="$EXPAT_BASE/include"/>
+ <environment name="BINDIR" default="$EXPAT_BASE/bin"/>
+</client>
+<runtime name="PATH" value="$BINDIR" type="path"/>
+</tool>
+</doc>

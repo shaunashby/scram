@@ -1,0 +1,63 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: library_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: library_template_generic.tmpl,v 1.3 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% PROCESS logging_template.tmpl -%]
+.PHONY: [% safename %] [% safename %]_clean [% safename %]_all
+[% safename %]_objdir := $(WORKINGDIR)/[% path %]/[% safename %]
+[% safename %]_clean::
+	$(call clean_path,$([% safename %]_objdir))
+[% PROCESS buildfile_check.tmpl packremoveonly=1 -%]
+[% FOREACH flag = [ "CXXFLAGS" "CFLAGS" "FFLAGS" "CPPDEFINES" "LDFLAGS" ] -%]
+[% safename %]_[% flag %]   := $([% flag %]) [% core.flags(flag) %]
+[% END -%]
+[% FOREACH data = [ "INCLUDE" "LIB" "LIBDIR" ] -%]
+[% safename %]_[% data %]   := $([% data %]) [% core.data(data) %]
+[% END -%]
+[% safename %]_LIBDIR       := $(LIBDIR)  $(filter-out $(LIBDIR),$(filter $(LOCALTOP)/%,[% core.data("LIBDIR") %]))
+[% safename %]_LDLIBS       += $(addprefix -l,$([% safename %]_LIB))
+[% safename %]_ALL_INCLUDES += $(addprefix -I,$([% safename %]_INCLUDE))
+[% safename %]_CPPFLAGS     += $(addprefix -D,$([% safename %]_CPPDEFINES)) $([% safename %]_ALL_INCLUDES) 
+[% safename %]_LDFLAGS      += $(addprefix -L,$([% safename %]_LIBDIR)) $([% safename %]_LDLIBS)
+[% safename %]_SKIP_FILES   := [% core.flags("SKIP_FILES") %]
+ifneq ($(strip $([% safename %]_SKIP_FILES)),)
+  [% safename %]_files := $(filter-out $([% safename %]_SKIP_FILES), $([% safename %]_files))
+endif
+[% safename %]_libcheck     := [% common.isLibSymLoadChecking () %]
+[% safename %]_srcdir       := $(LOCALTOP)/[% path %]
+[% safename %]_objs         := $(addprefix $([% safename %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $([% safename %]_files))))
+[% safename %]_deps         := $(addprefix $(WORKINGDIR)/cache/prod/, $([% safename %]_LIB))
+[% safename %]_libdeps      := $(addprefix $(WORKINGDIR)/cache/prod/lib, $([% safename %]_LIB))
+[% IF core.flags("INSTALL_SCRIPTS") != "" -%]
+[% safename %]_install_scripts_rule: [% logfile %]
+	$(call copy_src_scripts,[% path %],[% logname %],[% core.flags("INSTALL_SCRIPTS") %])
+[% safename %]_clean::
+	$(call clean_src_scripts,[% core.flags("INSTALL_SCRIPTS") %])
+[% safename %]_all += [% safename %]_install_scripts_rule
+[% ELSE -%]
+[% safename %]_install_scripts_rule:
+	@echo "No source files to compile. Nothing to be done at [% path %]."
+[% END -%]
+[% common.processTemplate("extra_template") -%]
+ifneq ($(strip $([% safename %]_objs)),)
+all_libraries += [% safename %]
+[% safename %]_BuildFile  := [% common.getLocalBuildFile() %]
+ifneq ($(strip $([% safename %]_BuildFile)),)
+[% safename %]_CONFIGDEPS := $(CONFIGDEPS) $(WORKINGDIR)/cache/bf/[% safename %]
+endif
+[% INCLUDE buildfile_check.tmpl packremoveonly=0 -%]
+[% INCLUDE rulechecker_template.tmpl -%]
+[% INCLUDE gcc_compile_rules.tmpl type="lib" -%]
+else
+[% safename %] [% safename %]_all: [% safename %]_install_scripts_rule
+	@:
+endif

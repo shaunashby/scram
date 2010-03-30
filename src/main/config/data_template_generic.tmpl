@@ -1,0 +1,20 @@
+[% IF common.isDataDownloadCopy() -%]
+[% PROCESS logging_template.tmpl logname=safepath -%]
+[% safepath %]_install_path   := $(addprefix share/,$(patsubst src/%,%,[% datapath %]))
+[% safepath %]_data_copy_rule := 
+[% safepath %]_clean::
+	$(call clean_path,$(COMMON_WORKINGDIR)/[% datapath %])
+	$(call clean_path,$([% safepath %]_install_path))
+[% END -%]
+[% IF add_download == 1 -%]
+[% FOREACH url = downloadurls -%]
+[% safepath %]_data_copy_rule += $(COMMON_WORKINGDIR)/[% url %]
+$(COMMON_WORKINGDIR)/[% url %]: [% url %] [% logfile %]
+	$(call download_urls,[% safepath %],[% logname %])
+[% END -%]
+[% END -%]
+[% IF add_data_copy == 1 -%]
+[% safepath %]_data_copy_rule += $([% safepath %]_install_path)
+$([% safepath %]_install_path): [% datapath %] [% logfile %]
+	$(call copy_datadir,[% safepath %],[% logname %])
+[% END -%]

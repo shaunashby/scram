@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="tauola27_121_1" version="1.0">
+ <lib name="tauola27.121.1"/>
+ <lib name="tauola27.121.1_aux1"/>
+ <use name="genser"/>
+ <use name="f77compiler"/>
+</tool>
+</doc>

@@ -1,0 +1,52 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: Documentation_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:28:03+0100
+# Revision: $Id: Package_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE package = PluginCore -%]
+
+LATEX=latex
+DVIPS=dvips
+DVIPDF=dvipdf
+
+[% safepath %]_objdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_filesuffixes:= tex
+[% safepath %]_filesrcdirs = $([% safepath %]_srcdir)/tex
+[% safepath %]_files += $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_filesuffixes),$(dir)/*main.$(ext)))))
+[% safepath %]_dviobjs := $(addprefix $([% safepath %]_objdir)/tex/, $(addsuffix .dvi, $(basename $(notdir $([% safepath %]_files)))))
+
+ifneq ($(strip $([% safepath %]_files)),)
+.PHONY: pdoc [% safepath %]_all [% safepath %]_doc
+[% safepath %]_all: [% safepath %]_doc
+
+pdoc [% safepath %]_doc:: [% safepath %]_manual
+	@echo ">> Doc for [% package.name() %] built"
+
+[% safepath %]_manual: $([% safepath %]_dviobjs)
+
+[% safepath %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help::
+	@echo "Help for building docs at [% path %]:"
+
+$([% safepath %]_objdir)/tex/%.dvi: $([% safepath %]_srcdir)/tex/%.tex
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	(pushd $(@D); $(LATEX) $< >/dev/null 2>&1; popd)
+
+else
+[% safepath %]_all: [% safepath %]_doc
+pdoc [% safepath %]_doc::
+	@echo "No Latex source files to compile. Nothing to be done for doc at [% path %]."
+endif

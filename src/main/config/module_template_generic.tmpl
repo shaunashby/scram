@@ -1,0 +1,104 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# File: Inserted from file: module_template_generic.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-05-04 15:19:41+0200
+# Revision: $Id: module_template_generic.tmpl,v 1.7 2005/05/13 15:48:30 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% mod_files = core.productfiles() -%]
+[% mod_name = core.productname() -%]
+[% core.data("MAKEFILE") %] 
+# Compiler flags for this module env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+[% safepath %]_[% mod_safename %]_CXXFLAGS   := $(CXXFLAGS) [% core.flags("CXXFLAGS") %] 
+[% safepath %]_[% mod_safename %]_CCFLAGS    := $(CCFLAGS) [% core.flags("CCFLAGS") %] 
+[% safepath %]_[% mod_safename %]_FFLAGS     := $(FFLAGS) [% core.flags("FFLAGS") %] 
+[% safepath %]_[% mod_safename %]_CPPDEFINES := $(CPPDEFINES) [% core.flags("CPPDEFINES") %]
+[% safepath %]_[% mod_safename %]_INCLUDE:=$(INCLUDE) [% core.data("INCLUDE") %]
+[% safepath %]_[% mod_safename %]_LIB:=[% core.data("LIB") %]
+[% safepath %]_[% mod_safename %]_LIBDIR:=$(LIBDIR) [% core.data("LIBDIR") %]
+[% safepath %]_[% mod_safename %]_LDLIBS:=$(addprefix -l,$([% safepath %]_[% mod_safename %]_LIB))
+[% safepath %]_[% mod_safename %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_[% mod_safename %]_INCLUDE))
+[% safepath %]_[% mod_safename %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_[% mod_safename %]_CPPDEFINES)) $([% safepath %]_[% mod_safename %]_ALL_INCLUDES)
+[% safepath %]_[% mod_safename %]_LDFLAGS+= $(LDFLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_[% mod_safename %]_LIBDIR)) $([% safepath %]_[% mod_safename %]_LDLIBS)
+[% safepath %]_[% mod_safename %]_objdir := $(WORKINGDIR)/[% path %]/[% mod_safename %]
+[% safepath %]_[% mod_safename %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_[% mod_safename %]_deps := [% core.pkdeps() %]
+[% safepath %]_[% mod_safename %]_filesrcdirs = $([% safepath %]_[% mod_safename %]_srcdir)
+[% safepath %]_[% mod_safename %]_files += [% mod_files %]
+[% safepath %]_[% mod_safename %]_objs := $(addprefix $([% safepath %]_[% mod_safename %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% mod_safename %]_files))))
+
+all_modules += [% safepath %]_[% mod_safename %]_all
+all_modules_clean += [% mod_safename %]_clean
+all_modules_help += [% mod_safename %]_help
+
+all_[% safepath %]_modules += [% safepath %]_[% mod_safename %]_all
+all_[% safepath %]_modules_clean += [% mod_safename %]_clean
+all_[% safepath %]_modules_help += [% mod_safename %]_help
+
+# Configuration dependencies. Always depend on BuildFile in current directory:
+[% safepath %]_[% mod_safename %]_BuildFile+=[% path %]/BuildFile
+[% safepath %]_[% mod_safename %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath %]_[% mod_safename %]_BuildFile)
+
+# Protect against no files scenario:
+ifneq ($(strip $([% safepath %]_[% mod_safename %]_files)),)
+.PHONY : module_generic [% safepath %]_[% mod_safename %]_all [% safepath %]_[% mod_safename %] [% mod_name %] [% mod_safename %]_clean [% mod_safename %]_help
+module_generic [% safepath %]_[% mod_safename %]_all: [% safepath %]_[% mod_safename %]
+[% safepath %]_[% mod_safename %]: $([% safepath %]_[% mod_safename %]_deps) [% safepath %]_[% mod_safename %]_mod
+
+CAPRI_MODULES+=[% mod_name %]
+
+# Rule for module build (a shortcut or something more easily typed):
+[% mod_name %]: [% safepath %]_[% mod_safename %]
+
+# Module rule:
+[% safepath %]_[% mod_safename %]_mod: $(WORKINGDIR)/[% path %]/[% mod_safename %]/$(MODULE_PREFIX)[% mod_name %]$(MODULE_SUFFIX)
+$(WORKINGDIR)/[% path %]/[% mod_safename %]/$(MODULE_PREFIX)[% mod_name %]$(MODULE_SUFFIX): $([% safepath %]_[% mod_safename %]_objs)
+	@echo ">> Building module $(MODULE_PREFIX)[% mod_name %]$(MODULE_SUFFIX)"
+	$(VERB)$(CXX) $([% safepath %]_[% mod_safename %]_CXXFLAGS) $([% safepath %]_[% mod_safename %]_LDFLAGS) $(CXXSHAREDOBJECTFLAGS) $([% safepath %]_[% mod_safename %]_objs) $(MODULEFLAGS) -o $@ 
+	$(VERB)$(copy_mod_to_main_productstore)
+
+[% mod_safename %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% mod_safename %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% mod_safename %]
+
+[% mod_safename %]_help::
+	@echo "Help for building modules at [% path %]:"
+	@echo "(MOD NAME = [% mod_name %], SOURCES = [% mod_files %]), PREFIX = $(MODULE_PREFIX)" 
+	@echo ""
+
+$([% safepath %]_[% mod_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% mod_safename %]_srcdir)/%.cc $([% safepath %]_[% mod_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% mod_safename %]_CPPFLAGS) $([% safepath %]_[% mod_safename %]_CXXFLAGS) $([% safepath %]_[% mod_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% mod_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% mod_safename %]_srcdir)/%.cpp $([% safepath %]_[% mod_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% mod_safename %]_CPPFLAGS) $([% safepath %]_[% mod_safename %]_CXXFLAGS) $([% safepath %]_[% mod_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% mod_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% mod_safename %]_srcdir)/%.cxx $([% safepath %]_[% mod_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% mod_safename %]_CPPFLAGS) $([% safepath %]_[% mod_safename %]_CXXFLAGS) $([% safepath %]_[% mod_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% mod_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% mod_safename %]_srcdir)/%.C $([% safepath %]_[% mod_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% mod_safename %]_CPPFLAGS) $([% safepath %]_[% mod_safename %]_CXXFLAGS) $([% safepath %]_[% mod_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_[% mod_safename %]_objs:.$(OBJEXT)=.d),$d)
+else
+module_generic [% safepath %]_[% mod_safename %]_all: [% safepath %]_[% mod_safename %]
+[% safepath %]_[% mod_safename %]:
+	@echo "No source files to compile. Nothing to be done for modules at [% path %]."
+endif
+

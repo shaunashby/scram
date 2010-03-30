@@ -1,0 +1,77 @@
+[%# -*-Makefile-*-
+%]
+# Global macros for project version and name:
+CPPDEFINES+=PROJECT_NAME='"$(SCRAM_PROJECTNAME)"' PROJECT_VERSION='"$(SCRAM_PROJECTVERSION)"'  
+
+######################################################################
+[% PERL -%]
+  my $g4magic="$ENV{LOCALTOP}/src/SimG4Core/Packaging/g4magic";
+  if ((-f $g4magic) && (!-f "${g4magic}.done"))
+  {
+    print STDERR ">> Updating SimG4Core/Packaging sources by running the g4magic script\n";
+    system("/bin/bash $g4magic");
+    system("touch ${g4magic}.done");
+  }
+[% END -%]
+######################################################################
+# Rule for running integration tests:
+integration-test:
+	@if [ -f $(LOCALTOP)/src/Configuration/Applications/data/runall.sh ]; then \
+	 echo ">> Running integration test suite"; echo; \
+	 cd $(LOCALTOP)/src/Configuration/Applications/data; ./runall.sh >/dev/null 2>&1; \
+	fi;
+
+######################################################################
+# Dependencies: run ignominy analysis for release documentation
+.PHONY: dependencies
+dependencies:
+	@cd $(LOCALTOP); eval `scramv1 run -sh`; \
+	mkdir -p $(LOCALTOP)/doc/deps/$(SCRAM_ARCH); \
+	cd $(LOCALTOP)/doc/deps/$(SCRAM_ARCH); \
+	runignominy -f -d os -A -g all $(LOCALTOP)
+
+######################################################################
+# Documentation targets. Note- must be lower case otherwise conflict with rules
+# for dirs which have the same name:
+.PHONY: userguide referencemanual doc
+doc: referencemanual
+	@echo "Documentation/release notes built for $(SCRAM_PROJECTNAME) v$(SCRAM_PROJECTVERSION)"
+
+userguide:
+	@if [ -f $(LOCALTOP)/src/Documentation/UserGuide/scripts/makedoc ]; then \
+	  doctop=$(LOCALTOP); \
+	else \
+	  doctop=$(RELEASETOP); \
+	fi; \
+	cd $$doctop/src; \
+	Documentation/UserGuide/scripts/makedoc $(LOCALTOP)/src $(LOCALTOP)/doc/UserGuide $(RELEASETOP)/src;
+
+referencemanual:
+	@cd $(LOCALTOP)/src/Documentation/ReferenceManualScripts/config; \
+	sed -e 's|@PROJ_NAME@|$(SCRAM_PROJECTNAME)|g' \
+	-e 's|@PROJ_VERS@|$(SCRAM_PROJECTVERSION)|g' \
+	-e 's|@CMSSW_BASE@|$(LOCALTOP)|g' \
+	-e 's|@INC_PATH@|$(LOCALTOP)/src|g' \
+	doxyfile.conf.in > doxyfile.conf; \
+	cd $(LOCALTOP); \
+	ls -d src/*/*/doc/*.doc | sed 's|\(.*\).doc|mv "&" "\1.dox"|' | /bin/sh; \
+	if [ `expr substr $(SCRAM_PROJECTVERSION) 1 1` = "2" ]; then \
+	  ./config/fixdocs.sh $(SCRAM_PROJECTNAME)"_"$(SCRAM_PROJECTVERSION); \
+	else \
+	  ./config/fixdocs.sh $(SCRAM_PROJECTVERSION); \
+	fi; \
+	ls -d src/*/*/doc/*.doy |  sed 's/\(.*\).doy/sed "s|@PROJ_VERS@|$(SCRAM_PROJECTVERSION)|g" "&" > "\1.doc"/' | /bin/sh; \
+	rm -rf src/*/*/doc/*.doy; \
+	cd $(LOCALTOP)/src/Documentation/ReferenceManualScripts/config; \
+	doxygen doxyfile.conf; \
+	cd $(LOCALTOP); \
+	ls -d src/*/*/doc/*.dox | sed 's|\(.*\).dox|mv "&" "\1.doc"|' | /bin/sh;
+
+######################################################################
+.PHONY: gindices
+gindices:
+	@cd $(LOCALTOP); \
+	mkdir src/.glimpse_full; \
+	glimpseindex -F -H src/.glimpse_full src; \
+	cd src; \
+	/bin/bash ../config/fixindices.sh;

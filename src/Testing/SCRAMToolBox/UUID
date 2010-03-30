@@ -1,0 +1,13 @@
+# -*- toolbox -*-
+<doc type=BuildSystem::ToolDoc version=1.0>
+<Tool name=UUID version=1.32>
+<lib name=uuid>
+<Client>
+ <Environment name=UUID_BASE>The top of the UUID distribution.</Environment>
+ <Environment name=LIBDIR default="$UUID_BASE/lib">
+ </Environment>
+ <Environment name=INCLUDE default="$UUID_BASE/include">
+ </Environment>
+</Client>
+<Runtime name=LD_LIBRARY_PATH value="$LIBDIR" type=path>
+</Tool>

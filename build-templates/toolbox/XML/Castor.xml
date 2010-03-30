@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Castor" version="2.1.1-4">
+<lib name="shift"/>
+<client>
+ <environment name="CASTOR_BASE"/>
+ <environment name="INCLUDE" default="$CASTOR_BASE/include"/>
+ <environment name="LIBDIR" default="$CASTOR_BASE/lib"/>
+</client>
+</tool>
+</doc>

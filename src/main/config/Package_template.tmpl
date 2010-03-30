@@ -1,0 +1,49 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: Package_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:28:03+0100
+# Revision: $Id: Package_template.tmpl,v 1.11 2007/02/27 11:54:47 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE package = PluginCore -%]
+[% USE common = CustomPlugin(package) -%]
+.PHONY: [% path %] [% packpath %] [% safepath %]_all [% safepath %] [% safepath %]_clean [% safepath %]_help [% safepath %]_runtests
+[% IF suffix -%]
+[% path %] [% packpath %] [% safepath %]_all [% safepath %] [% safepath %]_clean [% safepath %]_help:
+	@:
+[% RETURN -%]
+[% END -%]
+[% PROCESS tool_variables.tmpl core=package -%]
+.PHONY: [% safepath %]_msg
+[% path %] [% packpath %] [% safepath %]_all: [% safepath %]
+all_packages+=[% package.name() %]
+[% safepath %]:=$(addsuffix _all,[% package.safesubdirs() %])
+[% safepath %]_msg:
+[% IF logfile != '' -%]
+	@rm -f [% logfile %]; touch [% logfile %]
+	@echo "Entering Package $(patsubst src/%,%,[% path %])" >> [% logfile %]
+[% ELSE -%]
+	@echo "Entering Package $(patsubst src/%,%,[% path %])"
+[% END -%]
+[% safepath %]: [% safepath %]_msg $([% safepath %])
+[% IF logfile != '' -%]
+	@find [% logdir %] -name "*" -type f | grep -v  [% logfile %] | xargs -i cat {} >> [% logfile %]
+	@echo "Leaving Package $(patsubst src/%,%,[% path %])"  >> [% logfile %]
+	@echo ">> Package [% package.name() %] built" >> [% logfile %]
+	@cat [% logfile %]
+[% ELSE -%]
+	@echo "Leaving Package $(patsubst src/%,%,[% path %])"
+	@echo ">> Package [% package.name() %] built"
+[% END -%]
+[% safepath %]_clean: $(addsuffix _clean,[% package.safesubdirs() %])
+	$(call clean_path,$(SCRAM_INTwork)/[% path %])
+[% safepath %]_help:
+	@echo "Help for building at [% path %]:"
+[% safepath %]_runtests: [% safepath %] [% safepath %]_test_runtests
+	@echo ">> Tests for package $(patsubst src/%,%,[% path %]) ran."

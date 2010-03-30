@@ -1,0 +1,565 @@
+##############################################################################
+# Macros for pre/post build steps:
+define copy_lib_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_LIB) ]; then 	\
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_LIB) 	&&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_LIB)"; \
+  fi &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_LIB) &&\
+  if [ -f $(basename $@).rootmap ] ; then \
+    cp $(basename $@).rootmap $(LOCALTOP)/$(SCRAMSTORENAME_LIB); \
+  fi
+endef
+define delete_lib_from_main_productstore
+  $(call delete_build_prod,$(SCRAMSTORENAME_LIB))
+endef
+
+define copy_bin_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_BIN) ]; then 	\
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_BIN)	&&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_BIN)"; \
+  fi &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_BIN)
+endef
+define delete_bin_from_main_productstore
+  $(call delete_build_prod,$(SCRAMSTORENAME_BIN))
+endef
+
+define copy_test_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_TEST) ]; then \
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_TEST) 	&&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_TEST)"; \
+  fi &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_TEST)
+endef
+define delete_test_from_main_productstore
+  $(call delete_build_prod,$(SCRAMSTORENAME_TEST))
+endef
+
+define copy_py_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) ]; then	\
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) 	&&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON)"; \
+  fi  &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON)
+endef
+define delete_py_from_main_productstore
+  $(call delete_build_prod,$(SCRAMSTORENAME_PYTHON))
+endef
+
+define copy_doc_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_DOC) ]; then \
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_DOC) &&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_DOC)"; \
+  fi  &&\
+  echo "Copying $@ to productstore area:"	&&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_DOC)
+endef
+
+define copy_scripts_to_main_productstore
+  if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS) ]; then \
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS) &&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS)"; \
+  fi &&\
+  echo "Copying $@ to productstore area:"  &&\
+  cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS)
+endef
+
+define copy_java_to_java_productstore
+  @$($(2)_startlog) for f in `ls $($(1)_workdir)/ | grep -v .done`; do \
+    echo ">> Copying $$f => $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)" ;  \
+    cp -rpf $($(1)_workdir)/$$f $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)/ ; \
+  done $($(2)_endlog)
+endef
+
+define delete_build_prod 
+  rm -f $@ $(LOCALTOP)/$(1)/$(@F)
+endef
+
+define	clean_path
+  @if [ -d $(LOCALTOP)/$(1) ] ; then \
+    echo "Cleaning local working directory:$(1)"; \
+    /bin/rm -rf $(LOCALTOP)/$(1) ; \
+  fi
+endef
+
+define clean_prod
+  @if [ -f $(LOCALTOP)/$(1) ] ; then \
+    echo "Cleaning product: $(1)" ; \
+    /bin/rm -f $(LOCALTOP)/$(1); \
+  fi    
+endef
+
+define clean_scripts
+  $(call clean_path,$(1))
+  @for f in $(2) ; do	\
+    rm -rf $(SCRAMSTORENAME_BIN)/$$f; \
+  done
+endef
+
+define clean_src_scripts
+  @$(call clean_files,$(1),$(SCRAMSTORENAME_BIN))
+endef
+
+define clean_files
+  for f in $(1); do \
+    /bin/rm -rf $(LOCALTOP)/$(2)/$$f;	\
+  done
+endef
+##############################################################################
+ifndef SCRAM_NOLOADCHECK
+ifneq ($(strip $(SEAL_BASE)),)
+define check_module_load
+  if [ "X$(1)" = X ] ; then \
+    echo "@@@@ Checking shared library load: "	&&\
+    (SealModuleLoadCheck $@ || ($(call delete_lib_from_main_productstore) && exit 1)) &&\
+    echo "@@@@ ----> OK, shared library loaded successfully --" ; \
+  else \
+    echo "@@@@ Checking shared library loading was SKIPPED: "; \
+  fi
+endef
+endif
+endif
+
+ifndef check_module_load
+define check_module_load
+  echo "@@@@ Checking shared library loading was SKIPPED: "
+endef
+endif
+
+ifndef SCRAM_NOSYMCHECK
+define check_missing_symbols
+  if [ "X$(1)" = X ] ; then \
+    echo "@@@@ Checking shared library for missing symbols: " &&\
+    libname=`echo $(@F)|sed 's|^$(MODULE_PREFIX)||;s|\.$(MODULE_SUFFIX)$$||'` &&\
+    echo "int main(){}" > $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.cpp  &&\
+    $(VERB_ECHO) $(CXX) $(CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $(LDFLAGS) -o $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.out -L$(LOCALTOP)/$(@D) -l$$libname $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.cpp &&\
+    ($(CXX) $(CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $(LDFLAGS) -o $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.out -L$(LOCALTOP)/$(@D) -l$$libname $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.cpp || (rm -f $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.cpp $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.out && $(call delete_lib_from_main_productstore) && exit 1)) &&\
+    rm -f $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.cpp $(LOCALTOP)/$(SCRAM_INTwork)/$$libname.out	&&\
+    echo "@@@@ ----> OK, shared library FULLY-BOUND (no missing symbols)" ; \
+  else \
+    echo "@@@@ Checking for missing symbols was SKIPPED."; \
+  fi
+endef
+else
+define check_missing_symbols
+  echo "@@@@ Checking for missing symbols was SKIPPED."
+endef
+endif
+
+ifneq ($(strip $(SEAL_BASE)),)
+define seal_plugin_refresh
+  echo "@@@@ Running SealPluginRefresh" &&\
+  SealPluginRefresh
+endef
+endif
+
+define register_plugin
+  @$($(2)_startlog)if [ -f $< ] ; then \
+    [ -d $(@D) ] || mkdir -p $(@D) &&\
+    touch $(LOCALTOP)/$(SCRAM_INTwork)/cache/SealPluginRefresh &&\
+    if [ -f $@ ] ; then \
+      touch $@ &&\
+      echo "--- Updating SEAL plugin registration: $(1) ---";  \
+    else \
+      echo 'module $(MODULE_PREFIX)$(1).$(SHAREDSUFFIX)' > $@ &&\
+      echo "--- Registered SEAL plugin: $(1)"; \
+    fi &&\
+    if [ "X$(PSR_BASE_TARGET)" = X ] ; then \
+      $(seal_plugin_refresh);\
+    fi \
+  fi $($(2)_endlog)
+endef
+##############################################################################
+#Compilation Rules
+# CXX compilation
+define compile_cxx
+@$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling $< " &&\
+  $(VERB_ECHO) $(CXX) -MMD  -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -MMD  -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+endef  
+# C compilation
+define compile_c
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling $< " &&\
+  $(VERB_ECHO) $(CC) -MMD  -c $($(1)_CPPFLAGS) $($(1)_CFLAGS) $($(1)_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CC)  -c $($(1)_CPPFLAGS) $($(1)_CFLAGS) $($(1)_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+endef  
+# Fortran compilation
+define compile_fortran
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling $< " &&\
+  $(VERB_ECHO) $(FC) -MMD -c $($(1)_CPPFLAGS) $($(1)_FFLAGS) $($(1)_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(FC) -MMD -c $($(1)_CPPFLAGS) $($(1)_FFLAGS) $($(1)_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+endef  
+# Boost c++ source compilation
+define compile_boost
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling $< " &&\
+  $(VERB_ECHO) $(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($*)" $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($*)" $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+endef  
+# Boost c++ pywrapper compilation
+define compile_pywrapper
+  @$($(2)_startlog)echo "Generating and compiling wrapper file: " &&\
+  mkdir -p $(@D)  &&\
+  echo ">> Compiling $< " &&\
+  $(VERB_ECHO) $(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($(1)_PyWrapper)" $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($(1)_PyWrapper)" $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@$($(2)_endlog)
+endef  
+# Dictionary compilation
+define compile_lcgdict
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling for LCG dictionary: $< " &&\
+  $(VERB_ECHO) $(CXX) -MMD  -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -MMD  -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+  @$($(2)_startlog)[ -f $(basename $@).d ] && sed -e 2d -e 's#^[ ]\\##g' -e 's#_rflx.o:#_rflx.cpp:#g' -e 's#_rflx.cpp #_rflx.cpp: #g' \
+  $(basename $@).d > $<.d $($(2)_endlog)
+endef  
+# Root Dictionary compilation
+define compile_rootdict
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling for root dictionary: $< " &&\
+  $(VERB_ECHO) $(CXX) -MMD -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -MMD -c $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ $($(2)_endlog)
+endef
+# compiling java
+define compile_java
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Compiling java: $< " &&\
+  $(VERB_ECHO) $(JAVAC) -source 1.4 -classpath $(@D):$$CLASSPATH -d $(@D) $< &&\
+  $(JAVAC) -source 1.4 -classpath $(@D):$$CLASSPATH -d $(@D) $< &&\
+  touch $@ $($(2)_endlog)
+endef
+
+##############################################################################
+# Source Generators Rules
+# boost source generation from Pyste
+define pyste2boost
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo  ">> Generating and compiling Boost stub for module $*" 	&& \
+  python $(PYSTE_EXEC) -D_REENTRANT $($(1)_CPPFLAGS) --out=$@ --module=$* $< $($(2)_endlog)
+endef  
+# PyWrapper Generation
+define generate_pywrapper
+  @$($(2)_startlog)echo "Generating wrapper code to put the following files in a single module called: $(1)" $($(2)_endlog)
+  @exec 5>&1;	\
+  ( echo "#include <boost/python.hpp>"; echo;	\
+  for c in $($(1)_classnames) ..; do		\
+    case $$c in .. ) continue ;; esac ;		\
+    echo "  $$c" 1>&5;				\
+    echo "extern void init_module_$$c ();";	\
+  done;						\
+  echo; echo "void init_module_$(1) () {";	\
+  for c in $($(1)_classnames) ..; do		\
+    case $$c in .. ) continue ;; esac ;		\
+    echo "  init_module_$$c ();";		\
+  done;						\
+  echo "}"; echo;				\
+  echo "extern \"C\" void init$(1) () {";	\
+  echo 'boost::python::detail::init_module("$(1)",'\
+	'init_module_$(1));';			\
+  echo "}";					\
+  ) > $@.tmp
+  @mv $@.tmp $@
+endef  
+#LCG dictionary generation
+define generate_lcgdict
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Building LCG reflex dict from header file $< " &&\
+  $(VERB_ECHO) $(GENREFLEX) $(4) -s $(3) -o $@ $($(1)_GENREFLEX_ARGS) --gccxmlpath=$(GCCXML_BASE)/bin --capabilities=$(5) -DCMS_DICT_IMPL -D_REENTRANT -DGNU_SOURCE $($(1)_CPPFLAGS) &&\
+  ($(GENREFLEX) $(4) -s $(3) -o $@ $($(1)_GENREFLEX_ARGS) --gccxmlpath=$(GCCXML_BASE)/bin --capabilities=$(5) -DCMS_DICT_IMPL -D_REENTRANT -DGNU_SOURCE $($(1)_CPPFLAGS) || (rm -f $@ $(@D)/$(5) && exit 1))$($(2)_endlog)
+endef  
+# ROOt dictionary generation
+define generate_rootdict
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Building Root dict from header file $< " &&\
+  $(VERB_ECHO) $(ROOTCINT) -f $@ -c -p -DGNU_SOURCE $($(1)_CPPFLAGS) $< &&\
+  ($(ROOTCINT) -f $@ -c -p -DGNU_SOURCE $($(1)_CPPFLAGS) $< || (rm -f $@ && exit 1)) &&\
+  mv $@ $@.base	&&\
+  cat $< $@.base > $@ &&\
+  rm -f $@.base $($(2)_endlog)
+endef
+# CodeGen record Generation
+define generate_codegen_record
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Generating file $(@F) from class descriptor $<" &&\
+  $(VERB_ECHO) $(CODEGENPY) $(1) $($(1)_objdir) $< &&\
+  $(CODEGENPY) $(1) $($(1)_objdir) $< $($(2)_endlog)
+endef
+# MOC generation
+define generate_moc
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo ">> Running moc for $<" &&\
+  $($(1)_QTMOC) -o $@ $< $($(2)_endlog)
+endef
+# Flex Generaton
+define generate_lex
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo "Flex: Generating $@ from $<" &&\
+  $(VERB_ECHO) $(LEX) -o$@ -P$(patsubst %lex,%,$*) $< &&\
+  ($(LEX) -o$@ -P$(patsubst %lex,%,$*) $< || (rm -f $@ && exit 1))$($(2)_endlog)
+endef
+define generate_parse
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  echo "Bison: Generating $@ from $<" &&\
+  $(VERB_ECHO) $(YACC) -p$(patsubst %parse,%,$*) --defines=$(basename $@).h -o$(basename $@).cc $< &&\
+  ($(YACC) -p$(patsubst %parse,%,$*) --defines=$(basename $@).h -o$(basename $@).cc $< ||(rm -f $(basename $@).h $(basename $@).cc && exit 1)) &&\
+  cd $(WORKINGDIR)/$(3) &&\
+  ln -s $(1)/$*parse.h $*parse.h $($(2)_endlog)
+endef
+##############################################################################
+# Library linking Rules
+# Shared library linking
+define link_lib
+  @$($(2)_startlog)echo ">> Building shared library $@" &&\
+  touch $(WORKINGDIR)/cache/prod/lib$(1) &&\
+  $(VERB_ECHO) $(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDFLAGS) $($(1)_objs) -o $@ $(MODULEFLAGS) $($(1)_LDFLAGS) &&\
+  ($(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDFLAGS) $($(1)_objs) -o $@ $(MODULEFLAGS) $($(1)_LDFLAGS) || ($(call delete_lib_from_main_productstore) && exit 1)) &&\
+  $(copy_lib_to_main_productstore) &&\
+  $(call check_missing_symbols,$($(1)_libcheck)) &&\
+  $(call check_module_load,$($(1)_libcheck)) $($(2)_endlog)
+  @$($(2)_startlog)rm -f $($(1)_objdir)/$($(1)_product).dep && touch $($(1)_objdir)/$($(1)_product).dep &&\
+  for dep in $(foreach d,$($(1)_objs:.$(OBJEXT)=.d),$d) ; do \
+    if [ -f $$dep ] ; then sed 's|$(LOCALTOP)/||' $$dep >> $($(1)_objdir)/$($(1)_product).dep ; fi ; \
+  done $($(2)_endlog)
+endef  
+#Shared library for Python bindings
+define link_pylib
+  @$($(2)_startlog)echo ">> Building Python module $($(1)_product)" && \
+  touch $(WORKINGDIR)/cache/prod/lib$(1) &&\
+  $(VERB_ECHO) $(CXX) $(CXXSHAREDFLAGS) $($(1)_objs) -o $@ $(MODULEFLAGS) $($(1)_CXXSharedLink) &&\
+  ($(CXX) $(CXXSHAREDFLAGS) $($(1)_objs) -o $@ $(MODULEFLAGS) $($(1)_CXXSharedLink) || ($(call delete_lib_from_main_productstore) && exit 1)) &&\
+  $(copy_lib_to_main_productstore) $($(2)_endlog)
+  @$($(2)_startlog)rm -f $($(1)_objdir)/$($(1)_product).dep && touch $($(1)_objdir)/$($(1)_product).dep &&\
+  for dep in $(foreach d,$($(1)_objs:.$(OBJEXT)=.d),$d) ; do \
+    if [ -f $$dep ] ; then sed 's|$(LOCALTOP)/||' $$dep >> $($(1)_objdir)/$($(1)_product).dep ; fi ; \
+  done $($(2)_endlog)
+endef  
+#Shared Capabilities library
+define link_capabilities
+  @$($(2)_startlog)echo ">> ---- Building capability library $@" &&\
+  touch $(WORKINGDIR)/cache/prod/lib$(1) &&\
+  $(VERB_ECHO) $(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDFLAGS) $< -o $@ $(MODULEFLAGS) $($(1)_CDICT_LDFLAGS) &&\
+  ($(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDFLAGS) $< -o $@ $(MODULEFLAGS) $($(1)_CDICT_LDFLAGS) || ($(call delete_lib_from_main_productstore) && exit 1)) &&\
+  $(copy_lib_to_main_productstore) &&\
+  $(call check_missing_symbols,$($(1)_libcheck)) &&\
+  $(call check_module_load,$($(1)_libcheck)) $($(2)_endlog)
+endef
+
+##############################################################################
+# Binary/test building Rules
+# Test executable building
+define build_test
+  @$($(2)_startlog)echo ">> Building test $(1)" &&\
+  $(VERB_ECHO) $(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $($(1)_objs)  $($(1)_LDFLAGS) -o $@ &&\
+  ($(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $($(1)_objs) $($(1)_LDFLAGS) -o $@ || ($(call delete_test_from_main_productstore) && exit 1)) &&\
+  $(copy_test_to_main_productstore) $($(2)_endlog)
+  @$($(2)_startlog)rm -f $($(1)_objdir)/$($(1)_product).dep && touch $($(1)_objdir)/$($(1)_product).dep &&\
+  for dep in $(foreach d,$($(1)_objs:.$(OBJEXT)=.d),$d) ; do \
+    if [ -f $$dep ] ; then sed 's|$(LOCALTOP)/||' $$dep >> $($(1)_objdir)/$($(1)_product).dep ; fi ; \
+  done $($(2)_endlog)
+endef  
+# Binary building 
+define build_bin
+  @$($(2)_startlog)echo ">> Building binary $(1)" &&\
+  $(VERB_ECHO) $(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $($(1)_objs) $($(1)_LDFLAGS) -o $@ &&\
+  ($(CXX) $($(1)_CXXFLAGS) $(CXXSHAREDOBJECTFLAGS) $($(1)_objs) $($(1)_LDFLAGS) -o $@  || ($(call delete_bin_from_main_productstore) && exit 1)) &&\
+  $(copy_bin_to_main_productstore) $($(2)_endlog)
+  @$($(2)_startlog)rm -f $($(1)_objdir)/$($(1)_product).dep && touch $($(1)_objdir)/$($(1)_product).dep &&\
+  for dep in $(foreach d,$($(1)_objs:.$(OBJEXT)=.d),$d) ; do \
+    if [ -f $$dep ] ; then sed 's|$(LOCALTOP)/||' $$dep >> $($(1)_objdir)/$($(1)_product).dep ; fi ; \
+  done $($(2)_endlog)
+endef  
+
+##############################################################################
+# Data download and Copy
+# Url download
+define download_urls
+  @$($(2)_startlog) mkdir -p $(@D) && touch $@  &&\
+  echo ">> Downloading and installing data files from WWW: $<" &&\
+  dir=`dirname $< | sed 's|^src/|share/|'` && mkdir -p $$dir   &&\
+  (wget -P $(LOCALTOP)/$$dir -a $(LOCALTOP)/$(SCRAMSTORENAME_LOGS)/wwwdownload.log -i $< -N || (rm -f $@ && exit 1)) $($(2)_endlog)
+endef  
+# All Date dir to share
+define copy_datadir
+  @$($(2)_startlog)echo ">> Installing data files for $<"	&&\
+  mkdir -p $(@D) &&\
+  cp -rup $< $(@D) &&\
+  for dir in `find $@ -name CVS -type d`; do \
+    /bin/rm -rf $$dir ;\
+  done &&\
+  touch $@ $($(2)_endlog)
+endef
+define script_copy
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  /bin/rm -rf $@ &&\
+  cp -rp $< $@	&&\
+  echo ">> Copied $(@F)" $($(2)_endlog)
+endef
+define generate_python_bytecode
+  if [ "X$(PYTHON_COMPILE)" != X ] ; then \
+    echo ">> Generating python byte-code: $(1)" && \
+    python $(PYTHON_COMPILE) -f $(1) >/dev/null 2>&1; \
+  else \
+    echo "Python tool is not used. So not going to generate byte-code." ; \
+  fi
+endef
+define python_script_copy
+  @$($(2)_startlog)if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) ]; then \
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) &&\
+    echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON)"; 	\
+  fi &&\
+  rm -rf $($(1)_python_dir) && mkdir -p $($(1)_python_dir) &&\
+  echo ">> Copying python/* to $($(1)_python_dir)" &&\
+  for name in `ls $($(1)_srcdir) | grep -v "CVS\|BuildFile"` ; do \
+    f=$($(1)_srcdir)/$$name &&\
+    if [ -d $$f ] ; then \
+      cp -rp $$f $($(1)_python_dir) || continue ;\
+    else  \
+      [ "X`echo $$f | grep '\.py$$'`" != X ] || continue ; \
+      cp -rp $$f $($(1)_python_dir)/ || continue ;\
+    fi \
+  done &&\
+  $(call generate_python_bytecode,$(LOCALTOP)/$($(1)_python_dir)) &&\
+  for dir in `find $($(1)_python_dir) -name "*" -type d` ; do \
+    if [ ! -f $$dir/__init__.py ] ; then \
+      touch $$dir/__init__.py; \
+    fi \
+  done &&\
+  touch $($(1)_python_dir)/__init__.py &&\
+  touch $($(1)_python_dir)/../__init__.py $($(2)_endlog)
+endef
+define copy_src_scripts
+  @$($(2)_startlog)echo "------- copying scripts from $(1) -------" &&\
+  for f in $(3); do \
+    [ -f $(LOCALTOP)/$(1)/$$f ] || continue ;\
+    echo ">> Copying $(LOCALTOP)/$(1)/$$f"	&&\
+    cp -p $(LOCALTOP)/$(1)/$$f  $(LOCALTOP)/$(SCRAMSTORENAME_BIN) || continue ;\
+  done $($(2)_endlog)
+endef
+define src2store_copy
+  @$($(2)_startlog) echo "------- copying files from $(1) -------" &&\
+  mkdir -p $(LOCALTOP)/$(4) &&\
+  for f in $(3) ; do \
+    if [ -d $(LOCALTOP)/$(4)/$$f ] ; then \
+      rm -rf $(LOCALTOP)/$(4)/$$f; \
+    fi &&\
+    cp -rp $(LOCALTOP)/$(1)/$$f $(LOCALTOP)/$(4)/$$f &&\
+    echo ">> copied $$f"; \
+  done $($(2)_endlog)
+endef
+#############################################################################
+# Tesings test executable
+define run_test
+  @if [ ! -f $(LOCALTOP)/$(SCRAMSTORENAME_LOGS)/testing.log ]; then \
+    mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_LOGS); \
+    touch $(LOCALTOP)/$(SCRAMSTORENAME_LOGS)/testing.log; \
+    echo "Creating test log file"; \
+  fi
+  @echo "Package "$(patsubst src/%/test,%,[% path %])": Running test $(1)"
+  @rm -f $($(1)_objdir)/testing.log; touch $($(1)_objdir)/testing.log
+  @echo " " >> $($(1)_objdir)/testing.log
+  @echo "===== Test \"$(1)\" ====" >> $($(1)_objdir)/testing.log
+  @$(LOCALTOP)/$(SCRAMSTORENAME_TEST)/$(1) $($(1)_TEST_RUNNER_ARGS) >> $($(1)_objdir)/testing.log 2>&1 || echo "---> test $(1) had ERRORS"
+  @echo " " >> $($(1)_objdir)/testing.log
+  @echo "^^^^ End Test $(1) ^^^^" >> $($(1)_objdir)/testing.log
+  @cat $($(1)_objdir)/testing.log
+  @cat $($(1)_objdir)/testing.log >> $(LOCALTOP)/$(SCRAMSTORENAME_LOGS)/testing.log; rm -f $($(1)_objdir)/testing.log
+endef
+
+##############################################################################
+# Rule Checker rukes
+#Preprocessing C source
+define rulechecker_preprocess_file_init
+  if [ -f $($(1)_srcdir)/../interface/$*.h ] ; then \
+    echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $($(1)_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $($(1)_objdir)/config_FILES_TO_ANALYZE.full ; \
+  else \
+    echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $($(1)_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $($(1)_objdir)/config_FILES_TO_ANALYZE.full ;\
+  fi &&\
+  rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED &&\
+  for rule in `echo "$($(1)_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.$(4):" | sed 's|$*.$(4):||' | tr ',' '\n'` ; do \
+    echo "$$rule" >> $@.RULES_IGNORED;\
+  done &&\
+  if [ ! -s $@.RULES_IGNORED ] ; then \
+    rm -f $@.RULES_IGNORED; \
+  fi &&\
+  rm -f $(LOCALTOP)/doc/RuleCheck/$(3)/$(*F).$(RULECHECKER_VIOLATION_EXT) &&\
+  rm -f $(LOCALTOP)/doc/RuleCheck/$(3)/$(*F).err &&\
+  if [ $(@D)/$(*F).d ] ; then \
+    sed 's|.o: |.i: |' $(@D)/$(*F).d > $(@D)/$(*F).id ;\
+  fi
+endef
+#Preprocessing C source
+define preprocess_c
+  @$($(2)_startlog) mkdir -p $(@D) &&\
+  echo ">> Preprocessing $<" &&\
+  $(VERB_ECHO) $(CC)  -E $($(1)_CPPFLAGS) $($(1)_CFLAGS) $($(1)_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CC)  -E $($(1)_CPPFLAGS) $($(1)_CFLAGS) $($(1)_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(call rulechecker_preprocess_file_init,$(1),$(2),$(3),$(4)) $($(2)_endlog)
+endef
+#Preprocessing CXX source
+define preprocess_cxx
+  @$($(2)_startlog) mkdir -p $(@D) &&\
+  echo ">> Preprocessing $<" &&\
+  $(VERB_ECHO) $(CXX) -E $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(CXX) -E $($(1)_CPPFLAGS) $($(1)_CXXFLAGS) $($(1)_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@ &&\
+  $(call rulechecker_preprocess_file_init,$(1),$(2),$(3),$(4)) $($(2)_endlog)
+endef
+# Run Rule checker
+define run_rule_checker
+  @$($(2)_startlog) cd  $($(1)_objdir) && touch quickExecution &&\
+  for file in `cat config_FILES_TO_ANALYZE.full | awk '{print $$1}'`; do \
+    line=`grep "^$$file " config_FILES_TO_ANALYZE.full` &&\
+    patcharg=`echo $$line | sed 's|*.*||'` &&\
+    src_file=`echo $$line | awk '{print $$2}'` &&\
+    file_woext=`echo $$file | sed 's|\.$(RULECHECKER_PREPROCESS_EXT)$$||'` &&\
+    viol_err_file=$$file_woext.err &&\
+    viol_file=$$file_woext.$(RULECHECKER_VIOLATION_EXT) &&\
+    echo ">> Patching $$src_file"  &&\
+    patch4cms.pl $$patcharg  &&\
+    echo "$$line" > config_FILES_TO_ANALYZE  &&\
+    rm -f config_RULES_IGNORED  &&\
+    if [ -f $$file.RULES_IGNORED ] ; then \
+      mv $$file.RULES_IGNORED config_RULES_IGNORED; \
+    fi	&&\
+    echo ">> Rule checking $$src_file" &&\
+    rulechecker_runs_ok="yes"  &&\
+    $(JAVA_HOME)/bin/java $$CMS_CODING_RULES > $$viol_err_file 2>&1 || rulechecker_runs_ok="no" &&\
+    if [ X$$rulechecker_runs_ok = Xyes ] ; then	rm -f $$viol_err_file; fi &&\
+    if [ -f "$$file"i ] ; then rm -f "$$file"i; fi &&\
+    if [ -s $$viol_file ] ; then \
+      cat $$viol_file; mkdir -p $(LOCALTOP)/doc/RuleCheck/$(3) &&\
+      mv $$viol_file $(LOCALTOP)/doc/RuleCheck/$(3) &&\
+      echo ">> See rule violations: $(LOCALTOP)/doc/RuleCheck/$(3)/$$viol_file"; \
+    else \
+      rm -f $$viol_file; echo "   No violation found"; \
+    fi &&\
+    if [ -s $$viol_err_file ] ; then \
+      mkdir -p $(LOCALTOP)/doc/RuleCheck/$(3) &&\
+      mv $$viol_err_file $(LOCALTOP)/doc/RuleCheck/$(3); \
+    fi ;\
+  done &&\
+  rm -f config_RULES_IGNORED quickExecution config_FILES_TO_ANALYZE.full config_FILES_TO_ANALYZE &&\
+  cd $(LOCALTOP) && touch $@ $($(2)_endlog)
+endef
+##############################################################################
+define config_update
+  @$($(2)_startlog)mkdir -p $(@D) &&\
+  touch $@ &&\
+  $(call set_time_stamp,$($(1)_BuildFile),$(WORKINGDIR)/cache/bf/$(1))$($(2)_endlog)
+endef
+define set_time_stamp
+  perl -e 'my @d=stat "$(1)"; utime $$d[9],$$d[9],"$(2)";'
+endef
+define get_time_stamp
+  perl -e 'my @d=stat "$(1)"; print "$$d[9]\n";'
+endef
+
+##############################################################################
+[% PROCESS "${ProjectName}_common_rules.tmpl" -%]

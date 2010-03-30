@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="ccompiler" version="3.2.3" type="compiler">
+<architecture name="slc3_ia32_gcc323">
+ <client>
+ <environment name="GCC_BASE"/>
+ <environment name="GCCBINDIR" value="$GCC_BASE/bin"/>
+ <environment name="CC" value="$GCCBINDIR/gcc"/>
+ </client>
+ <flags CDEBUGFLAG="-g"/>
+ <flags CSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CFLAGS="-pthread"/>
+ <flags CFLAGS="-O2"/>
+ <flags LDFLAGS="-Wl,-E"/>
+ <flags CSHAREDFLAGS="-Wl,-E"/>
+ <flags SCRAM_COMPILER_NAME="gcc323"/>
+</architecture>
+
+<architecture name="slc4_ia32_gcc345">
+ <client>
+ <environment name="GCC_BASE"/>
+ <environment name="GCCBINDIR" value="$GCC_BASE/bin"/>
+ <environment name="CC" value="$GCCBINDIR/gcc"/>
+ </client>
+ <flags CDEBUGFLAG="-g"/>
+ <flags CSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CFLAGS="-pthread"/>
+ <flags CFLAGS="-O2"/>
+ <flags LDFLAGS="-Wl,-E"/>
+ <flags CSHAREDFLAGS="-Wl,-E"/>
+ <flags SCRAM_COMPILER_NAME="gcc323"/>
+</architecture>
+<flags SCRAM_LANGUAGE_TYPE="C"/>
+</tool>
+</doc>

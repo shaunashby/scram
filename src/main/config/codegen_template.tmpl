@@ -1,0 +1,44 @@
+[%# -*-Makefile-*-
+-%]
+[% IF (core.flags("CODEGENPATH") != "") && (common.isCodeGen() == 1) -%]
+# CODEGEN rules: magic for code generated from python script in the project:
+[% safename %]_codegen_dir        := [% core.flags("CODEGENPATH") %]
+CODEGENPY                         := python $([% safename %]_codegen_dir)/bin/codegen.py
+CODEGENTEMPLATES                  := $([% safename %]_codegen_dir)/templates
+[% safename %]_codegen_desc_files += $(wildcard $(foreach dir,$([% safename %]_srcdir), $(dir)/*.desc.xml))
+# Suffixes of produced source/header files:
+[% safename %]_codegen_srcsuffixes := .cpp .reg.cpp _T_Context.cpp
+[% safename %]_codegen_hdrsuffixes := .h Record.h
+# Names of the classes of objects (from *.desc.xml file names):
+[% safename %]_codegen_object_names := $(foreach file,$([% safename %]_codegen_desc_files), $(notdir $(patsubst %.desc.xml, %, $(file))))
+#The generated source/header files:
+[% safename %]_codegen_src := $(addprefix $([% safename %]_objdir)/,$(foreach objname,$([% safename %]_codegen_object_names), \
+			$(foreach suffix, $([% safename %]_codegen_srcsuffixes), $(objname)$(suffix))))
+[% safename %]_codegen_hdr := $(addprefix $([% safename %]_objdir)/, $(foreach objname,$([% safename %]_codegen_object_names), \
+			$(foreach suffix, $([% safename %]_codegen_hdrsuffixes), $(objname)$(suffix))))
+# Add the generated sources for the retriever class:
+[% safename %]_codegen_rtvr_src :=$(addprefix $([% safename %]_objdir)/, [% safename %]Retriever.cpp)
+[% safename %]_codegen_rtvr_hdr :=$(addprefix $([% safename %]_objdir)/, [% safename %]Retriever.h)
+# Modify the INCLUDE path to pick up generated header files:
+ifneq ($(strip $([% safename %]_codegen_src)),)
+[% safename %]_CPPFLAGS  += -I$(LOCALTOP)/$(WORKINGDIR)/src
+endif
+ifneq ($(strip $([% safename %]_codegen_rtvr_src)),)
+[% safename %]_CPPFLAGS  += -I$(LOCALTOP)/$(WORKINGDIR)/src
+endif
+[% safename %]_objs       += $(patsubst %.cpp, %.$(OBJEXT), $([% safename %]_codegen_src))
+[% safename %]_objs       += $(patsubst %.cpp, %.$(OBJEXT), $([% safename %]_codegen_rtvr_src))
+[% safename %]_precompile += $([% safename %]_codegen_src) $([% safename %]_codegen_hdr)
+[% safename %]_precompile += $([% safename %]_codegen_rtvr_src) $([% safename %]_codegen_rtvr_hdr)
+.PRECIOUS: $([% safename %]_codegen_src) $([% safename %]_codegen_hdr)
+$([% safename %]_objdir)/%.h $([% safename %]_objdir)/%Record.h $([% safename %]_objdir)/%.cpp $([% safename %]_objdir)/%.reg.cpp $([% safename %]_objdir)/%_T_Context.cpp: $([% safename %]_srcdir)/%.desc.xml $([% safename %]_objdir)/config
+	$(call generate_codegen_record,[% safename %],[% logname %])
+$([% safename %]_objdir)/[% safename %]Retriever.$(OBJEXT): $([% safename %]_objdir)/[% safename %]Retriever.cpp
+	$(call compile_cxx,[% safename %],[% logname %])
+([% safename %]_objdir)/[% safename %]Retriever.cpp $([% safename %]_objdir)/[% safename %]Retriever.h: $([% safename %]_codegen_hdr)
+	@:
+[% FOREACH ext = [ ".reg" "_T_Context" "" ] -%]
+$([% safename %]_objdir)/%[% ext %].$(OBJEXT): $([% safename %]_objdir)/%[% ext %].cpp $([% safename %]_objdir)/precompile
+	$(call compile_cxx,[% safename %],[% logname %])
+[% END -%]
+[% END -%]

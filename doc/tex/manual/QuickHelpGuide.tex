@@ -1,0 +1,413 @@
+%%____________________________________________________________________ 
+%% File: QuickHelpGuide.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 17:10:20+0100
+%% Revision: $Id: QuickHelpGuide.tex,v 1.5 2007/02/27 16:16:01 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\newcommand{\cmdintro}{Command overview}
+%%
+\chapter{Quick Help Guide for Developers}
+\label{ch:quickhelpguide}\index{help pages for developers}\index{\texttt{scram}}
+This chapter is intended to be a quick help guide for developers
+already familiar with working in a \scram\ project environment.  Each
+of the recognised \scram\ commands is described here.
+All commands provide online help too which can be accessed using
+
+\hspace{5mm}\scram~\inbrackets{command}~\texttt{--help} 
+
+or
+
+\hspace{5mm}\scram~\inbrackets{command}~\texttt{-h} 
+
+\ni For administrators setting up a project area for the first time,
+refer to Chapter~\ref{ch:creatingprojects}.
+
+\section{\scram\ version}
+\index{\texttt{scram}!\texttt{version}}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{version}~[\texttt{-c}]~[\texttt{-i}]~[\textit{version}]
+
+\ni With no \textit{version} argument given, this command will simply show
+the current \scram\ version number. If a version argument is supplied,
+that version will be downloaded and installed, if not already locally available.
+
+\begin{description}
+\item[\textbf{-i}]
+  Show \scram\ CVS commit info (the value of the CVS \texttt{Id} variable)
+\item[\textbf{-c}]
+  Print site CVS parameters to \texttt{stdout}. These parameters are used
+  when downloading and installing new \scram\ versions at a site.
+\end{description}
+
+
+\section{\scram\ arch}
+\index{\texttt{scram}!\texttt{arch}}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{arch}
+
+\hspace{5mm}\scram~\texttt{-arch}~\inbrackets{architecture}
+
+\ni Print out the architecture flag for the current machine or
+set the architecture to that specified.
+
+\section{\scram\ runtime}
+\index{\texttt{scram}!\texttt{runtime}}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{runtime} [-csh,-sh \textit{or} -win]
+
+\hspace{5mm}\scram~\texttt{runtime} [-csh,-sh \textit{or} -win]~\texttt{-file}~\textit{filename}
+
+\hspace{5mm}\scram~\texttt{runtime} [-csh,-sh \textit{or} -win]~\texttt{-file}~\textit{filename}~\texttt{-info}~\inbrackets{variable}
+
+\hspace{5mm}\scram~\texttt{runtime} [-csh,-sh \textit{or} -win]~\texttt{-dump}~\textit{filename}
+
+\ni Print the runtime environment for the current development area
+in \texttt{csh}, \texttt{sh} or Windows flavours. 
+
+\example{Examples}\mbox{}
+
+\ni Set up to include the project runtime settings
+in the current \texttt{tcsh} shell environment:
+
+\hspace{5mm}\texttt{eval}~`\scram~\texttt{runtime}~\texttt{-csh}` 
+
+\ni Set up to include the project runtime settings
+in a \texttt{bash} or Bourne shell environment:
+
+\hspace{5mm}\texttt{eval}~`\scram~\texttt{runtime}~\texttt{-csh}` 
+
+\ni To dump this environment to a file which can be sourced later, use
+
+\hspace{5mm}\scram~\texttt{runtime}~\texttt{-sh}~\texttt{-dump}~\textit{env.sh}
+
+\ni Note that from \scram\ \thisrelease\ it is no longer necessary to
+set the runtime environment before using the \scram~\texttt{build}
+command as this is now handled automatically. Of course, it is still
+required before running any executable in a developer area.
+
+\section{\scram\ config}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{config}~[\texttt{-t}]~[\texttt{-f}]
+
+\ni Dump configuration information for the current project area.
+
+\begin{description}
+\item[\textbf{-t}]
+  Dump a list of configured tools, rather like "\texttt{scram tool info}", but
+  in a format parseable by external scripts. This could be used to
+  create RPMs or \texttt{tar} files of external products required by a project.
+  
+  \ni The format of each line of output is:
+
+  \hspace{5mm} \textsf{name} : \textsf{version} : \textsf{project} : $<$\textsf{base\_path}$>$ : \textit{dependencies}
+  
+  \ni where the \textsf{project} entry is 0 or 1 depending on whether the
+  tool refers to a \scram\ project, $<$\textsf{base\_path}$>$ is the top
+  directory where the tool is installed (it can have the value
+  \texttt{SYSTEM} if located in system directories, \eg /lib) and
+  \textit{dependencies} lists the dependencies that the tool has on
+  other external tools. This will be set to \texttt{NONE} if there are 
+  no external dependencies.\\
+  
+\item[\textbf{-f}]
+  List the tool info and project information.
+\end{description}
+
+\section{\scram\ list}
+\index{\texttt{scram}!\texttt{list}}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{list}~[\texttt{-c}]~[\texttt{-o}]~\inbrackets{projectname}
+
+\ni List the available projects and versions installed in the
+local \scram\ database (see the help for the \texttt{scram install} command).
+
+\begin{description}
+\item[\textbf{-c}]
+  List the available projects and versions installed in the local
+  \scram\ database without fancy formatting or header strings. The
+  project name, version and installation directory are printed on \texttt{stdout}, separated
+  by spaces for use in scripts.
+\item[\textbf{-o}]
+  Show all projects from all versions (\ie pre-\scramvx)
+  of \scram\ (by default, only projects built and installed with
+  \scramvx\ will be listed). This emulates the old style of output.
+\end{description}
+
+\section{\scram\ db}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{db}~\inbrackets{subcommand} 
+
+\ni The \scram\ database administration command. Supported subcommands are:
+
+\begin{description}
+\item[\texttt{-link}]\mbox{}\\
+  Make available an additional database for project and
+  list operations, \eg
+  
+  \hspace{15mm}\scram~\texttt{db}~\texttt{-link}~\texttt{/some/path/project.lookup}
+  
+\item[\texttt{-unlink}]\mbox{}\\
+  Remove a database from the link list. Note this does
+  not remove the database, just the link.
+  
+  \hspace{15mm}\scram~\texttt{db}~\texttt{-unlink}~\texttt{/some/path/project.lookup}
+  
+\item[\texttt{-show}]\mbox{}\\
+  List the databases that are linked in.
+\end{description}
+
+
+
+\section{\scram\ urlget}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{urlget}~\inbrackets{url}
+
+\ni Retrieve document \texttt{URL} information. For example, show location in the cache
+of a local copy of a tool description document or a requirements file
+which has already been downloaded.
+
+\section{\scram\ project}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{project} [-t] [-d area ] [-n dir ] [-f tools.conf] projecturl [projectversion]
+
+\hspace{5mm}\scram~\texttt{project}~\texttt{-update}~\texttt{projectversion}
+
+\ni Set up a new project development area or update an existing one. A new area will appear in the
+current working directory by default.
+
+\ni Supported options are
+\begin{description}
+\item[\inbrackets{projecturl}]\mbox{}\\
+  The URL of a \scram\ boot file.
+\item[\inbrackets{projectversion}]\mbox{}\\ 
+  Only for use with a database label.
+\item[\textbf{-d}~\inbrackets{area}]\mbox{}\\
+  Indicate a project installation area into which the new
+  project area should appear. Default is the current working
+  directory.
+\item[\textbf{-n}~\inbrackets{dir}]\mbox{}\\
+  Specify the name of the \scram\ development area you wish to
+  create.
+\end{description}
+
+\ni Currently supported \texttt{URL} types are:
+\begin{description}
+\item[\textbf{database label}]\mbox{}\\	
+  Labels can be assigned to installed releases of projects for easy
+  access (See "scram install" command). If you specify a label you must also specify
+  a project version. This command is normally used to create cloned developer areas.
+\item[\textbf{-b}~\inbrackets{file}]\mbox{}\\
+  A boot file on an accessible file system. This command would
+  be used to create a project area from scratch on a laptop.
+\end{description}
+
+\example{Examples}\mbox{}
+
+\hspace{5mm}\scram~\texttt{project}~\texttt{XX}~\texttt{XX\_8\_0}
+
+\hspace{5mm}\scram~\texttt{project}~\texttt{-b}~\texttt{~/myprojects/projecta/config/boot.xml}
+
+\ni Use the \textbf{-f} flag followed by a valid filename (which \textit{must} end in ".conf") to
+allow auto setup to proceed without reading files from a repository (standalone mode).
+
+\ni Some project template files can be obtained using the command:
+
+\hspace{5mm}\scram~\texttt{project}~\texttt{-template}
+
+\ni The templates will be copied to a directory called \texttt{config} in the current directory.
+
+\ni An existing developer area for a project can be updated to a more recent version of
+the \textit{same} project by running 
+
+\hspace{5mm}\scram~\texttt{project}~\texttt{-update}~\inbrackets{VERSION} 
+
+\ni in the developer area. If no \texttt{VERSION} is given, the command is
+considered as a query and will return a list of project versions which
+are compatible with the configuration of the current area.
+A subsequent invocation of the command with a valid \texttt{VERSION} will then update the area
+to that version.
+
+\section{\scram\ setup}
+
+\hspace{5mm}\scram~\texttt{setup}~[-i]~[\texttt{toolname}]~\{[\texttt{version}]~[\texttt{url}]\}~[-f \textit{tools.conf}]
+
+\ni Allows installation/re-installation of a new tool/external package into an
+already existing development area. If no toolname is specified,
+the complete installation process is initiated.
+
+\begin{description}
+\item[\texttt{toolname}]\mbox{}\\
+  The name of the tool to be set up.
+\item[\texttt{version}]\mbox{}\\
+  The version of the tool to set up.
+\item[\texttt{url}]\mbox{}\\
+  URL of the tool document describing the tool being set up. Supported
+  URLs are \texttt{file:} and \texttt{http:}.\\
+\item[\textbf{-i}]
+  Turn off the automatic search mechanism allowing for more
+  user interaction during setup.
+\item[\textbf{-f}]
+  Allow the user to specify a tools file (the
+  filename \textit{must} end in ".conf"). This file contains values 
+  to be used for settings of the tool.  
+\end{description}
+
+
+\section{\scram\ tool}
+
+\cmdintro:
+
+       \hspace{5mm}\scram~\texttt{tool}~\inbrackets{subcommand}
+
+\ni Manage the tools in the current \scram\ project area.
+Valid tool subcommands and arguments are:
+
+\begin{description}
+\item[\texttt{list}]\mbox{}\\ 
+  List of configured tools available in the current \scram\ area.
+\item[\texttt{info}~\inbrackets{tool\_name}]\mbox{}\\
+  Print out information on the specified tool in the current area.
+\item[\texttt{tag}~\inbrackets{tool\_name}~\inbrackets{tag\_name}]\mbox{}\\
+  Print out the value of a variable (tag) for the specified tool in the
+  current area configuration. If no tag name is given, then all known tag
+  names are printed to \texttt{stdout}.
+\item[\texttt{remove}~\inbrackets{tool\_name}]\mbox{}\\
+  Remove the specified tool from the current project area.
+\item[\texttt{template}~\inbrackets{TYPE}]\mbox{}\\
+  Create a template tool description file of type \inbrackets{TYPE},
+  where \inbrackets{TYPE} can be either "compiler" or "basic" depending on whether the
+  template is for a compiler or for a basic tool. The template will be
+  created in the current directory.
+\end{description}
+
+%\section{\scram\ gui}
+%
+%	scram gui -edit [class]
+%	scram gui -show [meta type]
+%
+%Allow user interaction with the build Metadata.
+
+\section{\scram\ build}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{[--debug]}~\texttt{build}~\texttt{[options]}~\texttt{[makeopts]}~\texttt{TARGET}
+
+\ni Run compilation in the current project area.
+
+\textbf{--debug} can be used to turn on full \scram\ debug output.
+
+The following long options are supported (short options can also be used):
+\begin{description}
+\item[\texttt{--help}]\mbox{}\\
+  Show this help message.
+\item[\texttt{--verbose}]\mbox{}\\            
+  Verbose mode. Show cache scan progress and compilation commands
+  (this will automatically set \texttt{SCRAM\_BUILDVERBOSE} to \texttt{true})
+\item[\texttt{--testrun}]\mbox{}\\            
+  Do everything except run \texttt{gmake}.
+\item[\texttt{--reset}]\mbox{}\\              
+  Reset the project caches and rescan then rebuild.
+\item[\texttt{--fast}]\mbox{}\\               
+  Skip checking the cache and go straight to building.
+\item[\texttt{--writegraphs=$<$g,p$>$}]\mbox{}\\  
+  Enable creation of dependency graphs. Set this to 'global' (g) if you
+  want to create project-wide dependency graphs or 'package' (p) for
+  package-level graphs. The graphs will be stored in the project working
+  directory. If you set the environment variable \texttt{SCRAM\_WRITEGRAPHS=X}
+  (where \texttt{X} is PS/JPEG/GIF), \scram\ will automatically create the graphs in format \texttt{X}.
+  
+  Note that you must have AT\&T's \texttt{dot} program installed and in
+  your path to be able to use this feature.
+  
+\end{description}
+
+\example{Example}\mbox{}
+To refresh the current area cache, produce global dependency graphs but not run \texttt{gmake}
+
+\hspace{5mm}\scram~\texttt{build}~\texttt{-r}~\texttt{-w=g}~\texttt{-t}
+
+\ni Make option flags can be passed to gmake at build-time: the supported options are
+\begin{description}
+\item[\textbf{-n}]\mbox{}\\               
+  Print the commands that would be executed but do not run them.
+\item[\texttt{--printdir}]\mbox{}\\
+  Print the working directory before and after entering it.
+\item[\texttt{--printdb}]\mbox{}\\ 
+  Print the data base of rules after scanning makefiles, then build as normal.
+\item[\textbf{-j $<$n$>$}]\mbox{}\\
+  The number of processes to run simultaneously.
+\item[\textbf{-k}]\mbox{}\\
+  Continue for as long as possible after an error.
+\item[\textbf{-s}]\mbox{}\\ 
+  Do not print any output.
+\item[\textbf{-d}]\mbox{}\\
+  Run \texttt{gmake} in debug mode.
+\end{description}
+
+\section{\scram\ install}
+\index{\texttt{scram}!\texttt{install}}
+
+\cmdintro:
+
+\hspace{5mm}\scram~\texttt{install}~[-f]~[\inbrackets{project\_tag}~[\inbrackets{version\_tag}]] 
+
+\ni Associates a label with the a project release listed in the \scram\ database.
+This allows other users to refer to a centrally installed project by
+this label rather than a remote URL reference.
+
+\begin{description}
+\item[\textbf{-f}]
+  Force an installation of a project, overwriting any entries
+  with the same project name and version (useful in batch processing).
+\item[\inbrackets{project\_tag}]\mbox{}\\
+  Override default label (the project
+  name of the current release)
+\item[\inbrackets{version\_tag}]\mbox{}\\
+  Version tag of the current release. If version is not specified the base release version will be taken by default.
+\end{description}
+
+\section{\scram\ remove}
+\index{\texttt{scram}!\texttt{remove}}
+
+\cmdintro:
+
+\hspace{5mm}\texttt{scram}~\texttt{remove}~[\texttt{-f}]~[\inbrackets{projectname}] [\inbrackets{projectversion}]
+
+\ni Remove a project entry from the \scram\ project database file ("project.lookup").
+\begin{description}
+\item[\textbf{-f}]
+  Force removal of a project, not prompting the user for confirmation (useful in batch processing).
+\end{description}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "SCRAM-man"
+%%% End: 
+
+%%____________________________________________________________________ 
+%% End of QuickHelpGuide.tex
+%%____________________________________________________________________ 
+%%  

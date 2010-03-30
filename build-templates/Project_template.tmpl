@@ -1,0 +1,347 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# File: Project_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 16:38:19+0100
+# Revision: $Id: Project_template.tmpl,v 1.2 2005/05/20 17:09:29 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE project = PluginCore %]
+ifndef THISDIR
+exit:
+	@echo "You must pass in a value for THISDIR (normally current dir name from LOCALTOP)."
+endif
+# Dynamic way to establish the current value of TARGETDIR which is used
+# to activate directory-dependent build targets:
+TARGETDIR:= $(subst /,_,$(THISDIR))
+
+.PHONY : all [% safepath %]
+all : this_dir_all
+
+this_dir_all : $(TARGETDIR)_all 
+
+[% safepath %]_all: [% safepath %]
+	@:
+
+# Global variables:
+AR:=/bin/ar
+SHELL:= /bin/sh
+UNAME:=$(shell uname)
+comma:= ,
+empty:=
+space:= $(empty) $(empty)
+[% variables = project.variables() %]
+# Get all variable defs from global tools, e.g. compilers:
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END %]
+# Get all BASE variables for scram-managed projects in current configuration:
+[% scramprojectbases = project.scramprojectbases() -%]
+[% FOREACH spbase IN scramprojectbases -%]
+[% spbase.key %]:=[% spbase.value %]
+[% END -%]
+# Default compiler settings to be used if nothing came 
+# from the project configuration (very Linux-dependent 
+# at the moment!):
+ifndef CXX
+CXX:=g++
+endif
+ifndef CC
+CC:=gcc
+endif
+ifndef FC
+FC:=g77
+endif
+ifndef JAVAC
+JAVAC:=javac
+endif
+
+# Usual SCRAM variables:
+[% FOREACH envvar IN environment -%]
+[% envvar.key %]:=[% envvar.value %]
+[% END %]
+
+# Compiler flags from each compiler tool:
+[% FOREACH flag IN project.allflags() -%]
+[% flag.key %]:=[% flag.value %]
+[% END %]
+# What is the suffix for object files?
+OBJEXT:=o
+# What is the suffix for modules?
+MODULE_SUFFIX:=.so
+# What is the prefix? Are they like libraries?
+MODULE_PREFIX:=lib
+
+# Where to compile:
+WORKINGDIR := $(SCRAM_INTwork)
+INCLUDE:=[% project.data("INCLUDE") %] 
+
+# Main product storage areas (can be replaced at any build location, providing
+# that the declaration via ProductStore tags is made in the BuildFile at that level):
+# Note: SCRAMSTORENAME_x is like x/$(SCRAM_ARCH) or $(SCRAM_ARCH)/x.
+#       SCRAMSTORE_x = $(LOCALTOP)/$(SCRAMSTORENAME_x)--> not really used as it's better to add
+#       LOCALTOP by hand rather than define new var SCRAMSTORE_x:
+[% FOREACH store IN project.allscramstores() -%]
+[% store.key %]+=[% store.value %]
+ALL_PRODUCT_STORES+=$(LOCALTOP)/$([% store.key %])
+[% END %]
+# Just in case we didn't get a LIB productstore. We'll guess that we might have at
+# least a lib dir:
+ifndef SCRAMSTORENAME_LIB
+SCRAMSTORENAME_LIB+=lib
+endif
+# Add local library store to LIBDIR:
+LIBDIR:=$(LOCALTOP)/$(SCRAMSTORENAME_LIB)
+ifdef RELEASETOP
+LIBDIR+=$(RELEASETOP)/$(SCRAMSTORENAME_LIB)
+endif
+
+# Dump out any data from MAKEFILE tags:
+[% project.data("MAKEFILE") %] 
+
+# Dump out default libtype:
+LIBTYPE:= [% project.data("LIBTYPE") %]
+
+# Global dependencies. We make every target dependent on ToolCache.db. 
+CONFIGDEPS+= $(LOCALTOP)/.SCRAM/$(SCRAM_ARCH)/ToolCache.db
+LIBDIR+=[% project.data("LIBDIR") %] 
+
+# Debugging options:
+ifndef SCRAM_BUILDVERBOSE
+VERB:=@
+else
+VERB:=
+endif
+
+.PHONY: [% safepath %]_all [% safepath %] project msg project_clean project_help
+
+# Verbosity rule:
+msg:
+	@echo ">> Building $(SCRAM_PROJECTNAME) version $(SCRAM_PROJECTVERSION) ----"
+
+# The list of subdirs (subsystems/packages):
+[% safepath %]_subdirs+=[% project.safesubdirs() %]
+# Global rules:
+project [% safepath %]: msg $([% safepath %]_subdirs)
+
+.PHONY : bin library module application distclean vclean clean help 
+# Shortcut rules:
+bin: binary
+lib: library
+mod: module
+app: application
+
+help: $(TARGETDIR)_help
+
+# Cleaning targets:
+distclean: vclean cache_clean
+	@echo "Cleaning ProductStore directories:"; \
+	/bin/rm -rf $(ALL_PRODUCT_STORES)
+
+vclean :
+	@echo "Cleaning local working directory $(LOCALTOP)/$(SCRAM_INTwork):"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)
+
+clean: $(TARGETDIR)_clean
+
+cache_clean:
+	@echo "Resetting project timestamp cache:"; \
+	/bin/rm -f $(LOCALTOP)/.SCRAM/ProjectCache.db
+
+project_clean [% safepath %]_clean: # At project-level, clean does nothing
+	@echo "Use vclean target to clean at project level (i.e., a global clean)."
+
+echo_%:
+	@echo "$(subst echo_,,$@) = $($(subst echo_,,$@))"
+
+project_help [% safepath %]_help:
+	@echo "------------ Help for Project-level Builds ------------"
+	@echo ""
+	@echo "bin:"
+	@echo "     Build all binary executables." 
+	@echo ""
+	@echo "lib:"
+	@echo "     Build all libraries."
+	@echo ""
+	@echo "module:"
+	@echo "     Build all modules."
+	@echo ""
+	@echo "application:"
+	@echo "     Build all applications."
+	@echo ""
+	@echo "distclean:"
+	@echo "     Clean the local working directory (tmp/) and all product storage areas (and their contents),"
+	@echo "     e.g. lib/$(SCRAM_ARCH), bin/$(SCRAM_ARCH)."	
+	@echo ""
+	@echo "vclean:"
+	@echo "     Clean the local working directory $(LOCALTOP)/$(SCRAM_INTwork)."
+	@echo ""
+	@echo "clean:"
+	@echo "     Clean the local working directory only, $(LOCALTOP)/$(SCRAM_INTwork)/$(THISDIR)."
+	@echo ""
+	@echo "prebuild:"
+	@echo "     Execute pre-build target for the project."
+	@echo ""
+	@echo "postbuild:"
+	@echo "     Execute the post-build target for the project."
+	@echo ""
+	@echo ""
+
+prebuild:
+	@echo "Pre-build target for the $(SCRAM_PROJECTNAME) project"
+
+postbuild:
+	@echo "Post-build target for the $(SCRAM_PROJECTNAME) project"
+
+config_all: # Eventually warn about $(LOCALTOP)/$(SCRAM_CONFIGDIR)/RequirementsDoc changes
+	@:
+
+# Shortcut rules:
+.PHONY: binary library module application scripts python
+binary: binary_generic
+	@echo ">> All binaries built"
+
+library: shared
+	@echo ">> All libraries built"
+
+# The application tag is used for registering SEAL plugins. Invoke the rule 
+# "application_generic" as part of the module rule. This just creates 
+# the file module/<arch>/X.reg:
+module: scripts module_generic python_generic capri_reg_all application_generic
+	@echo ">> All CMSSW modules built and registered"
+
+application: application_generic
+	@echo ">> All applications built"
+
+python: python_generic
+	@echo ">> All CMSSW Python modules built"
+
+# Module registration for CMSSW modules:
+.PHONY: capri_reg_all capri_reg
+
+# Should this be found via PATH?
+CAPRIPLUGINPY:=capriplugin.py
+CAPRIPLUGINSFILE:=$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)/capri.plugins
+
+capri_reg_all: capri_reg
+
+capri_reg: $(LOCALTOP)/$(SCRAMSTORENAME_MODULE)/capri.plugins $(CAPRI_MODULES)
+	@cd $(LOCALTOP)/$(SCRAMSTORENAME_MODULE); \
+	for f in $(CAPRI_MODULES); do \
+	 echo "CAPRI_REG: Registering module $$f"; \
+	 touch $$f.reg; \
+	 $(CAPRIPLUGINPY) $$f.reg $$f > /dev/null; \
+	 cat $$f.reg >> $^ ; \
+	 rm -f $$f.reg; \
+	done
+
+# Rule to create capri.plugins file:
+$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)/capri.plugins::
+	@if [ -f $@ ]; then \
+	 rm -f $@; touch $@ ; \
+	 echo ">> Recreating file $@"; touch $@; \
+	else \
+	 echo ">> Creating file $@"; touch $@; \
+	fi
+
+# Macros for pre/post build steps:
+define copy_lib_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_LIB) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_LIB) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_LIB)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_LIB)
+endef
+
+define copy_bin_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_BIN) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_BIN) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_BIN)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_BIN)
+endef
+
+define copy_mod_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_MODULE) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_MODULE) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_MODULE)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_MODULE)
+endef
+
+define copy_py_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_PYTHON)
+endef
+
+define copy_app_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_APP) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_APP) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_APP)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_APP)
+endef
+
+define copy_doc_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_DOC) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_DOC) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_DOC)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_DOC)
+endef
+
+define copy_scripts_to_main_productstore
+	@if [ ! -d $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS) ]; then \
+	 mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS) > /dev/null 2>&1; \
+	 echo "Creating product storage directory: $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS)"; \
+	fi
+	@echo "Copying $@ to productstore area:"
+	@cp $@ $(LOCALTOP)/$(SCRAMSTORENAME_SCRIPTS)
+endef
+
+# Misc CMSSW targets for copying scripts:
+scripts:
+#	@echo "Copying CMSSW scripts to binary product area"
+#	@chmod 755 $(LOCALTOP)/src/CARF/domain/scripts/*
+#	@cp -r $(LOCALTOP)/src/CARF/domain/scripts/*  $(LOCALTOP)/bin/$(SCRAM_ARCH)
+#	@rm -r $(LOCALTOP)/bin/$(SCRAM_ARCH)/CVS
+
+# Documentation targets. Note- must be lower case otherwise conflict with rules
+# for dirs which have the same name:
+.PHONY: userguide referencemanual doc
+doc: referencemanual
+	@echo "Documentation/release notes built for $(SCRAM_PROJECTNAME) v$(SCRAM_PROJECTVERSION)"
+
+userguide:
+	@if [ -f $(LOCALTOP)/src/Documentation/UserGuide/scripts/makedoc ]; then \
+	  doctop=$(LOCALTOP); \
+	else \
+	  doctop=$(RELEASETOP); \
+	fi; \
+	cd $$doctop/src; \
+	Documentation/UserGuide/scripts/makedoc $(LOCALTOP)/src $(LOCALTOP)/doc/UserGuide $(RELEASETOP)/src;
+
+referencemanual:
+	@if [ -f $(LOCALTOP)/src/Documentation/ReferenceManual/scripts/makedoc ]; then \
+	  doctop=$(LOCALTOP); \
+	else \
+	  doctop=$(RELEASETOP); \
+	fi; \
+	cd $$doctop/src; \
+	Documentation/ReferenceManual/scripts/makedoc $(LOCALTOP)/src $(LOCALTOP)/doc/ReferenceManual $(RELEASETOP)/src \
+        CMSSW $(SCRAM_PROJECTVERSION)
+

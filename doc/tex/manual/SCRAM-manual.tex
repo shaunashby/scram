@@ -1,0 +1,168 @@
+%%____________________________________________________________________ 
+%% File: SCRAM-manual.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 16:58:03+0100
+%% Revision: $Id: SCRAM-manual.tex,v 1.8 2007/02/27 16:16:01 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\documentclass[12pt,twoside]{report}
+\usepackage{pslatex}
+\usepackage{style}
+\usepackage{pslatex}
+\makeindex
+\begin{document}
+
+\parskip 2ex plus 2pt minus 1pt
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SCRAM manual: definitions                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\authorname}{S.~Ashby, \textsc{CERN PH D}ept.}
+\newcommand{\scrammaintainers}{S.~Ashby}
+\newcommand{\thisrelease}{V1\_1\_0}
+\newcommand{\lastrelease}{V1\_0\_3}
+\newcommand{\scramvx}{V1\_x}
+\newcommand{\scramdevelopers}{scram-developers@cern.ch}
+\newcommand{\savannahURL}{http://savannah.cern.ch/projects/scram/}
+\newcommand{\scram}{\texttt{scram}}
+%%
+\newcommand{\scramcvsrepository}{\small{
+    \texttt{:pserver:anonymous@isscvs.cern.ch:/local/reps/scram}
+    }\normalsize}
+\newcommand{\spiscramcvsrepository}{\small{
+    \texttt{:pserver:anonymous@spitools.cern.ch:/cvs/SPITOOLS}
+    }\normalsize}
+%% New environment for indenting lists:
+\newenvironment{indentlist}[2]{\begin{description}}{\end{description}}
+\newcommand{\indentitem}[1]{\item[#1]}
+\renewcommand{\ni}{\noindent}
+\newcommand{\example}[1]{\paragraph{{\sffamily #1}:}}
+\newcommand{\libcrh}{$2.1.x$}
+\newcommand{\lbkt}{$<$}
+\newcommand{\rbkt}{$>$~}
+%%
+%% For XML tag markup:
+%% <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+%% <tag att1="abc" att2="123"></tag> or
+%% <tag att1="abc" att2="123"/>
+%%
+\newcommand{\xmldocheader}{$<$?\texttt{xml} version="1.0" encoding="UTF-8" standalone="\texttt{yes}"?$>$}
+%%
+\newcommand{\mylongrightarrow}{$\longrightarrow$}
+\newcommand{\pipe}{$|$}
+\begin{htmlonly}
+\newcommand{\libcrh}{\texttt{2.1.x}}
+\newcommand{\lbkt}{<}
+\newcommand{\rbkt}{> }
+\newcommand{\mylongrightarrow}{\texttt{-->}}
+\newcommand{\pipe}{|}
+\end{htmlonly}
+\newcommand{\option}[1]{[\textit{#1}]}
+\newcommand{\marg}[1]{\texttt{#1}}
+\newcommand{\optionwflag}[2]{[\textbf{#1}~\textit{#2}]}
+\newcommand{\flag}[1]{[\textbf{#1}]}
+\newcommand{\inbrackets}[1]{$<$\texttt{#1}$>$}
+\newcommand{\buildfile}{BuildFile} %% Could change this to texttt
+% 
+\newenvironment{scramcmd}[1]{%
+  \texttt{scram #1}
+}{} %
+% 
+\newcommand{\tagstart}[1]{\lbkt\texttt{#1}\rbkt}
+\newcommand{\tagend}[1]{\lbkt\texttt{/#1}\rbkt}
+%% Define a new environment for typesetting tags with blank lines above
+%% and below and slightly indented:
+\newenvironment{tagprint}{%
+  \begin{list}{}{\item[]}}
+  {\end{list}}%
+%
+\newenvironment{indentprint}{%
+  \begin{list}{}{\item[]}}
+  {\end{list}}%
+
+%% Other shortcuts:
+\newcommand{\iie}{\emph{i.e.\ }}
+\newcommand{\ieg}{\emph{e.g.\ }}
+\newcommand{\ietc}{\emph{etc.\ }}
+\newcommand{\ie}{i.e.\ }
+\newcommand{\eg}{e.g.\ }
+\newcommand{\etc}{etc.\ }
+
+%% Moved from CreatingProjects.tex:
+\renewcommand{\descriptionlabel}[1]{
+  \setlength{\evensidemargin}{\oddsidemargin}
+\rm{#1}}% We want description items to be normal
+        % text, not bold. Margins adjusted.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Heading for title page:                                             %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{empty}
+\begin{titlepage}
+  \vspace{8cm}
+  \begin{latexonly}
+    \begin{center}
+      {\Large\bf SCRAM: \thisrelease } \\ \vspace{1cm}
+    \end{center}
+  \end{latexonly}
+  
+  % Author and contact info:                                            %%  
+  \vspace{5cm}    
+  \begin{center}
+    \begin{indentlist}{2.5cm}{3.0cm}
+      \indentitem{Documentation Author:}\authorname
+      \indentitem{Release Date:}\today
+    \end{indentlist}
+  \end{center}
+  \vspace{3cm}
+  
+  % A brief synopsis:                                                   %%
+  
+  \ni SCRAM ({\bf S}oftware {\bf C}onfiguration 
+  {\bf R}elease {\bf A}nd  {\bf M}anagement) is a configuration
+  management and build tool originally conceived for the software 
+  development environment of a high-energy physics experiment at
+  CERN. This manual is for SCRAM \thisrelease.
+  \bigskip\bigskip
+  \bigskip\bigskip
+  \begin{center}
+    \textbf{Please report bugs to \savannahURL}
+  \end{center}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\pagestyle{plain}
+\pagenumbering{roman}
+\tableofcontents            % Contents
+\listoffigures
+\pagestyle{plain}
+\pagestyle{fancy}
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% SCRAM manual: scram-main. The main text.                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{Introduction}
+\include{Installation}
+\include{CreatingProjects}
+\include{BuildSystem}
+\include{Examples}
+\include{QuickHelpGuide}
+\include{Appendix}
+\include{ReleaseNotes}
+
+%% Finally, the index:
+\small
+\printindex
+\normalsize
+
+%%
+\end{document}
+%%____________________________________________________________________ 
+%% End of SCRAM-manual.tex
+%%____________________________________________________________________ 
+%%  

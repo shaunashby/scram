@@ -1,0 +1,7 @@
+[% common.searchLCGRootDict() -%]
+[% IF classes_h.size() -%]
+[% INCLUDE "lcgdict_template.tmpl" -%]
+[% END -%]
+[% IF rootdictfile != '' -%]
+[% INCLUDE "rootdict_template.tmpl"  -%]
+[% END -%]

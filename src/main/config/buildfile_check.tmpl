@@ -1,0 +1,6 @@
+[%# -*-Makefile-*-
+-%]
+[% common.buildFileTimeStampChecking() -%]
+[% IF packremoveonly != 0 -%]
+[% PROCESS tool_variables.tmpl -%]
+[% END -%]

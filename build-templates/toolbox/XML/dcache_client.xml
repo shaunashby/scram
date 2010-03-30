@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="dcache_client" version="1.7.0">
+<lib name="dcap"/>
+<client>
+ <environment name="DCACHE_CLIENT_BASE"/>
+ <environment name="LIBDIR" default="$DCACHE_CLIENT_BASE/lib"/>
+ <environment name="INCLUDE" default="$DCACHE_CLIENT_BASE/include"/>
+</client>
+</tool>
+</doc>

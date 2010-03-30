@@ -1,0 +1,381 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# File: Project_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 16:38:19+0100
+# Revision: $Id: Project_template.tmpl,v 1.11 2007/02/27 11:54:47 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE project = PluginCore %]
+[% USE common = CustomPlugin(project) -%]
+ifndef THISDIR
+exit:
+	@echo "You must pass in a value for THISDIR (normally current dir name from LOCALTOP)."
+endif
+[% FOREACH var IN common.addAllVariables() -%]
+[% var %]
+[% END -%]
+LOCALTOP:=[% ProjectLOCALTOP %]
+# Dynamic way to establish the current value of TARGETDIR which is used
+# to activate directory-dependent build targets:
+TARGETDIR:= $(subst /,_,$(THISDIR))
+
+# Get all variable defs from global tools, e.g. compilers:
+[% PROCESS tool_variables.tmpl core=project nomake_data=1 -%]
+# Get all BASE variables for scram-managed projects in current configuration:
+[% scramprojectbases = project.scramprojectbases() -%]
+[% FOREACH spbase IN scramprojectbases -%]
+[% IF common.shouldAddToolVariables(spbase.key) -%]
+[% spbase.key %]:=[% spbase.value %]
+[% END -%]
+[% END -%]
+# Usual SCRAM variables:
+[% FOREACH envvar IN environment -%]
+[% IF common.shouldAddToolVariables(envvar.key) -%]
+[% envvar.key %]:=[% envvar.value %]
+[% END -%]
+[% END %]
+# Compiler flags from each compiler tool:
+[% FOREACH flag IN project.allflags() -%]
+[% flag.key %]:=[% flag.value %]
+[% END %]
+# Main product storage areas (can be replaced at any build location, providing
+# that the declaration via ProductStore tags is made in the BuildFile at that level):
+# Note: SCRAMSTORENAME_x is like x/$(SCRAM_ARCH) or $(SCRAM_ARCH)/x.
+#       SCRAMSTORE_x = $(LOCALTOP)/$(SCRAMSTORENAME_x)--> not really used as it's better to add
+#       LOCALTOP by hand rather than define new var SCRAMSTORE_x:
+[% FOREACH store IN project.allscramstores() -%]
+[% store.key %]+=[% store.value %]
+ALL_PRODUCT_STORES+=$(LOCALTOP)/$([% store.key %])
+[% END %]
+# gmake data 
+[% core.data("MAKEFILE") -%]
+
+# Default compiler settings to be used if nothing came 
+# from the project configuration (very Linux-dependent 
+# at the moment!):
+ifndef CXX
+CXX:=g++
+endif
+ifndef CC
+CC:=gcc
+endif
+ifndef FC
+FC:=g77
+endif
+ifndef JAVAC
+JAVAC:=javac
+endif
+# Global variables:
+ifndef AR
+AR:= /bin/ar
+endif
+ifndef SHELL
+SHELL:= /bin/sh
+endif
+ifndef UNAME
+UNAME:=$(shell uname)
+endif
+ifndef comma
+comma:= ,
+endif
+ifndef empty
+empty:=
+endif
+ifndef space
+space:= $(empty) $(empty)
+endif
+
+ifndef SHAREDSUFFIX
+ifeq ($(filter-out osx%,$(SCRAM_ARCH)),)
+SHAREDSUFFIX:=dylib
+else
+SHAREDSUFFIX:=so
+endif
+endif
+
+ifndef MODULEFLAGS
+ifeq ($(filter-out slc%,$(SCRAM_ARCH)),)
+MODULEFLAGS:=-shared
+endif
+endif
+
+# What is the suffix for object files?
+OBJEXT:=o
+# What is the suffix for modules?
+MODULE_SUFFIX:=$(SHAREDSUFFIX)
+# What is the prefix? Are they like libraries?
+MODULE_PREFIX:=lib
+# Where to compile:
+COMMON_WORKINGDIR := tmp/common
+WORKINGDIR := $(SCRAM_INTwork)
+# some common used variables
+SEAL_PLUGIN_DIR             := $(SCRAMSTORENAME_MODULE)
+CXXSRC_FILES_SUFFIXES       := [% common.getSourceExtensions("cxx").join(" ") %]
+CSRC_FILES_SUFFIXES         := [% common.getSourceExtensions("c").join(" ") %]
+FORTRAN_SRC_FILES_SUFFIXES  := [% common.getSourceExtensions("fortran").join(" ") %]
+SRC_FILES_SUFFIXES          := $(CXXSRC_FILES_SUFFIXES) $(CSRC_FILES_SUFFIXES) $(FORTRAN_SRC_FILES_SUFFIXES)
+YACC                        := bison
+LEX                         := flex
+LATEX                       := latex
+DVISUFFIX                   := dvi
+PSSUFFIX                    := ps
+PDFSUFFIX                   := pdf
+PS2PDF                      := ps2pdf
+DVIPS                       := dvips
+ifeq ($(strip $(GENREFLEX)),)
+GENREFLEX:=[% common.getGenReflexPath() %]
+endif
+ifeq ($(strip $(ROOTCINT)),)
+ROOTCINT:=[% common.getRootCintPath() %]
+endif
+
+
+# Just in case we didn't get a LIB productstore. We'll guess that we might have at
+# least a lib dir:
+ifndef SCRAMSTORENAME_LIB
+SCRAMSTORENAME_LIB:=lib
+endif
+ifeq ($(strip $(SCRAM_SOURCEDIR)),)
+SCRAM_SOURCEDIR:=src
+endif
+# Add local library/src store to LIBDIR/INCLUDE:
+LIBDIR:=$(LOCALTOP)/$(SCRAMSTORENAME_LIB)
+INCLUDE:=$(LOCALTOP)/$(SCRAM_SOURCEDIR)
+ifdef RELEASETOP
+LIBDIR+=$(RELEASETOP)/$(SCRAMSTORENAME_LIB)
+INCLUDE+=$(RELEASETOP)/$(SCRAM_SOURCEDIR)
+endif
+LIBDIR  += $(LOCALTOP)/external/$(SCRAM_ARCH)/lib
+INCLUDE += $(wildcard $(LOCALTOP)/external/$(SCRAM_ARCH)/include*)
+LIBDIR:=$(wildcard $(LIBDIR) $(filter-out $(LIBDIR),[% project.data("LIBDIR") %]))
+INCLUDE:=$(wildcard $(INCLUDE) $(filter-out $(INCLUDE),[% project.data("INCLUDE") %]))
+ifdef RELEASETOP
+LIBDIR:=$(filter $(LOCALTOP)/% $(RELEASETOP)/%,$(LIBDIR))
+else
+LIBDIR:=$(filter $(LOCALTOP)/%,$(LIBDIR))
+endif
+
+# Dump out default libtype:
+LIBTYPE:= [% project.data("LIBTYPE") %]
+
+# Global dependencies. We make every target dependent on ToolCache.db. 
+#CONFIGDEPS += $(LOCALTOP)/.SCRAM/$(SCRAM_ARCH)/ToolCache.db
+ifneq ($(wildcard $(LOCALTOP)/$(SCRAM_CONFIGDIR)/BuildFile),)
+CONFIGDEPS += $(LOCALTOP)/$(SCRAM_CONFIGDIR)/BuildFile
+endif
+CONFIGDEPS += $(WORKINGDIR)/cache/xlibs
+# Debugging options:
+ifndef SCRAM_BUILDVERBOSE
+VERB:=@
+VERB_ECHO:=:
+else
+VERB:=
+VERB_ECHO:=echo
+endif
+
+# The list of subdirs (subsystems/packages). We skip Documentation as this
+# subsystem has its' own rules for building:
+[% safepath %]_subdirs+=$(filter-out Documentation, [% project.safesubdirs() %])
+
+.PHONY: prebuild all clean help distclean vclean cache_clean runtests
+.PHONY: project project_all project_clean project_help
+.PHONY: [% safepath %] [% safepath %]_all [% safepath %]_clean [% safepath %]_help [% safepath %]_runtests
+
+all : $(TARGETDIR)_all ProjectSealPluginRefresh
+
+PSR_BASE_TARGET:=
+ifneq ($(strip $(MAKECMDGOALS)),)
+ifeq ($(strip $(MAKECMDGOALS)),release)
+PSR_BASE_TARGET := [% safepath %]
+endif
+ifeq ($(strip $(MAKECMDGOALS)),release-build)
+PSR_BASE_TARGET := [% safepath %]
+endif
+else
+ifeq ($(strip $(TARGETDIR)),src)
+PSR_BASE_TARGET := $(TARGETDIR)
+else
+PSR_BASE_TARGET := $(TARGETDIR)_all
+endif
+endif
+
+prebuild = 
+postbuild =
+[% safepath %] =
+[% common.processTemplate("Project") -%]
+
+project [% safepath %]_all project_all: [% safepath %] ProjectSealPluginRefresh
+	@:
+
+[% safepath %]: prebuild $([% safepath %]) $([% safepath %]_subdirs)
+
+prebuild: $(prebuild)
+	@echo ">> Building $(SCRAM_PROJECTNAME) version $(SCRAM_PROJECTVERSION) ----"
+	@if [ ! -d $(LOCALTOP)/logs/$(SCRAM_ARCH) ] ; then	\
+	  mkdir -p $(LOCALTOP)/logs/$(SCRAM_ARCH) >/dev/null 2>&1; \
+	fi
+
+[% safepath %]_runtests: $(addsuffix _runtests, $([% safepath %]_subdirs))
+	@echo "Test sequence completed for $(SCRAM_PROJECTNAME) $(SCRAM_PROJECTVERSION)"
+
+help: $(TARGETDIR)_help
+clean: $(TARGETDIR)_clean
+runtests: $(TARGETDIR)_runtests
+
+# Cleaning targets:
+distclean: vclean cache_clean
+	@echo "Cleaning ProductStore directories:"; \
+	/bin/rm -rf $(ALL_PRODUCT_STORES)
+
+vclean:
+	@echo "Cleaning local working directory from $(LOCALTOP)/$(SCRAM_INTwork)/src:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/src
+
+cache_clean:
+	@echo "Resetting project timestamp cache:"; \
+	/bin/rm -f $(LOCALTOP)/.SCRAM/$(SCRAM_ARCH)/ProjectCache.db
+
+project_clean [% safepath %]_clean: vclean
+
+echo_%: $(CONFIGDEPS)
+	@echo "$(subst echo_,,$@) = $($(subst echo_,,$@))"
+
+project_help [% safepath %]_help:
+	@echo "------------ Help for Project-level Builds ------------"
+	@echo ""
+	@echo "distclean:"
+	@echo "     Clean the local working directory (tmp/) and all product storage areas (and their contents),"
+	@echo "     e.g. lib/$(SCRAM_ARCH), bin/$(SCRAM_ARCH). Also reset the project cache."	
+	@echo ""
+	@echo "vclean:"
+	@echo "     Clean the local working directory from $(LOCALTOP)/$(SCRAM_INTwork)/src."
+	@echo ""
+	@echo "clean:"
+	@echo "     Clean the local working directory only, $(LOCALTOP)/$(SCRAM_INTwork)/$(THISDIR)."
+	@echo ""
+	@echo "prebuild:"
+	@echo "     Execute pre-build target for the project."
+	@echo ""
+	@echo "postbuild:"
+	@echo "     Execute the post-build target for the project."
+	@echo ""
+	@echo "rulechecker:"
+	@echo "     Run the rulechecker to look for code style violations."
+	@echo ""
+	@echo "release-test:"
+	@echo "     Run the integration test suite"
+	@echo ""
+	@echo "runtests:"
+	@echo "     Build and run all tests for the project, or package-level tests only."
+	@echo "     (Depends on the location where \"scram b runtests\" is run)."
+	@echo ""
+
+# Release build rules modified to use the main rules where possible:
+SCRAM_CMD := scramv1
+RELEASE_LOG	= $(LOCALTOP)/logs/$(SCRAM_ARCH)/release.log
+RELEASE_ENV	= cd $(LOCALTOP)/$(THISDIR); eval `$(SCRAM_CMD) runtime -sh`; \
+		  QUIET_ASSERT=sa; export QUIET_ASSERT; \
+		  exec >> $(RELEASE_LOG) 2>&1; set -x
+
+.PHONE: release postbuild integration-test
+.PHONY: release-reset release-build release-check release-test release-freeze release-doc release-docs rulechecker
+
+postbuild: $(postbuild) release-check
+	@echo "Release $(SCRAM_PROJECTNAME) v$(SCRAM_PROJECTVERSION) build finished at `date`"
+
+release: release-reset release-build postbuild
+
+release-build: project_all
+
+release-reset: distclean
+
+release-check: release-test
+
+release-test: integration-test
+
+release-docs release-doc: doc
+
+release-freeze: release-check
+	@echo "Cleaning up and protecting directories:"
+	@cd $(LOCALTOP); \
+	rm -fr (WORKINGDIR)/$(SCRAM_SOURCEDIR) ; \
+	rm -fr (WORKINGDIR)/cache ; \
+	find . -type f -print | xargs chmod a-w; \
+	find . -type d -print | xargs chmod 555
+
+rulechecker:
+	@echo "Sorry, \"$@\" target is no more available. To run RuleChecker please do either"
+	@echo "  For csh/tcst:"
+	@echo "    env CMS_RULECHECKER=1 scramv1 b"
+	@echo "  OR For bash/sh:"
+	@echo "    CMS_RULECHECKER=1 scramv1 b"
+ProjectRename projectrename PROJECTRENAME:
+	@if [ -f $(LOCALTOP)/$(SCRAM_CONFIGDIR)/projectAreaRename.pl ] ; then \
+	  $(LOCALTOP)/$(SCRAM_CONFIGDIR)/projectAreaRename.pl [% ProjectOldPath %] $(LOCALTOP) $(SCRAM_ARCH); \
+	  echo "Done: $@"; \
+	fi
+##############################################################################
+.PHONY: FORCE_TARGET
+FORCE_TARGET:
+	@:
+$(WORKINGDIR)/cache/prod/%:
+	@touch $@
+$(WORKINGDIR)/cache/log/%: FORCE_TARGET
+	@if [ -f $@ ] ; then  rm -f $@ ; fi
+	@touch -t 197001010100 $@
+%_all %_clean %_help:
+	@echo No $(subst $*_,,$@) rule is specified for $(subst _,/,$*) directory.
+%_runtests:
+	@:	
+##############################################################################
+ifneq ($(findstring k,$(firstword  $(MAKEFLAGS))),)
+FORCE_BUILD_START = (
+FORCE_BUILD_END = ) || (echo gmake: \*\*\* [$@] Error $$? ; exit 0)
+else
+FORCE_BUILD_START =
+FORCE_BUILD_END =
+endif
+##############################################################################
+ifneq ($(strip $(SEAL_BASE)),)
+ProjectSealPluginRefresh: $(LOCALTOP)/$(SEAL_PLUGIN_DIR)/.cache
+$(LOCALTOP)/$(SEAL_PLUGIN_DIR)/.cache: $(LOCALTOP)/$(SCRAM_INTwork)/cache/SealPluginRefresh
+	@if [ -f $< ] ; then \
+	  $(seal_plugin_refresh) ; \
+	fi
+$(LOCALTOP)/$(SCRAM_INTwork)/cache/SealPluginRefresh: $(PSR_BASE_TARGET)
+	@:
+else
+ProjectSealPluginRefresh:
+	@:
+endif
+##############################################################################
+ToolUpdated_%: ToolUpdated
+ExternalLinks ToolUpdated:
+	$(LOCALTOP)/$(SCRAM_CONFIGDIR)/linkexternal.pl --arch $(SCRAM_ARCH)
+$(WORKINGDIR)/cache/xlibs: $(LOCALTOP)/.SCRAM/$(SCRAM_ARCH)/ToolCache.db
+	@runscript=0 ; \
+	if [ -f $(LOCALTOP)/external/$(SCRAM_ARCH)/links.DB ] ; then \
+	  if [ ! -f $@.tmp ] ; then \
+	    runscript=1 ; \
+	  else \
+	    if [ "X`$(call get_time_stamp,$<)`" != "X`$(call get_time_stamp,$@.tmp)`" ] ; then \
+	      runscript=1 ; \
+	    fi ;\
+	  fi ;\
+	else \
+	  runscript=1 ; \
+	fi ;\
+	if [ "X$$runscript" == "X1" ] ; then \
+	  touch $@.tmp ;\
+	  $(call set_time_stamp,$<,$@.tmp) ;\
+	  $(LOCALTOP)/$(SCRAM_CONFIGDIR)/linkexternal.pl --arch $(SCRAM_ARCH);\
+	fi
+	@touch -t 197001010100 $@
+###############################################################################
+[% INCLUDE  common_rules.tmpl -%]

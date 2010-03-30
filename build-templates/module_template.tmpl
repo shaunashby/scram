@@ -1,0 +1,54 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: product_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: module_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[%# Variables common to all products:
+%]
+[% USE core = PluginCore -%]
+[% variables = core.variables() -%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+[%# We loop over all build products:
+%]
+[% FOREACH product IN core.buildproducts() -%]
+[% pobject = product.value -%]
+[% type = pobject.type -%]
+[%# Check type here:
+%]
+[% SWITCH type -%]
+[% CASE "bin" -%]
+[% bin_safename = product.key -%]
+[% rvl = core.thisproductdata(bin_safename) -%]
+[% INCLUDE binary_template_generic.tmpl %]
+[% CASE "mod" -%]
+[% mod_safename = product.key -%]
+[% rvl = core.thisproductdata(mod_safename) -%]
+[% INCLUDE module_template_generic.tmpl %]
+[% CASE "lib" -%]
+[% lib_safename = product.key -%]
+[% rvl = core.thisproductdata(lib_safename) -%]
+[% lib_files = core.productfiles() %]
+[% lib_name = core.productname() %]
+[% INCLUDE extra_library_template.tmpl %]
+[% CASE "app" -%]
+[% app_safename = product.key -%]
+[% rvl = core.thisproductdata(app_safename) %]
+[% INCLUDE application_template_generic.tmpl %]
+[% END -%]
+[% END -%]
+[%# Final stuff. Generic targets for this location:
+%]
+[% safepath %]_all: [% safepath %]
+[% safepath %]: $(all_[% safepath %]_extra_libraries) $(all_[% safepath %]_binaries) $(all_[% safepath %]_modules) $(all_[% safepath %]_applications)
+[% safepath %]_clean:: $(all_[% safepath %]_extra_libraries_clean) $(all_[% safepath %]_binaries_clean) $(all_[% safepath %]_modules_clean) $(all_[% safepath %]_applications_clean)
+[% safepath %]_help:: $(all_[% safepath %]_extra_libraries_help) $(all_[% safepath %]_binaries_help) $(all_[% safepath %]_modules_help) $(all_[% safepath %]_applications_help)

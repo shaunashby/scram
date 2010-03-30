@@ -1,0 +1,106 @@
+# -*- toolbox -*-
+<doc type=BuildSystem::ToolDoc version=1.1>
+<tool name=cxxcompiler version=3.2.3>
+#
+# CERN Scientific Linux 3 (slc3):
+#
+<Architecture name=slc3_ia32_gcc323>
+ <client>
+ <Environment name=GCC_BASE>
+ </Environment>
+ <Environment name=GCCBINDIR default="$GCC_BASE/bin">
+ </Environment>
+ <Environment name=CXX value="$GCCBINDIR/c++">
+ </Environment>
+ </client>
+ <Flags CCcompiler="gcc3">
+ <Flags BFARCH="Linux24-gcc3">
+ <Flags MODULEFLAGS="-shared">
+ <Flags CXXDEBUGFLAG="-g">
+ <Flags CPPDEFINES="GNU_GCC">
+ <Flags CPPDEFINES="_GNU_SOURCE">
+ <Flags CXXSHAREDOBJECTFLAGS="-fPIC">
+ <Flags CXXFLAGS="-pedantic -ansi -pthread -pipe">
+ <Flags CXXFLAGS="-O2">
+ <Flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300">
+ <Flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses">
+ <Flags LDFLAGS="-Wl,-E">
+ <Flags CXXSHAREDFLAGS="-Wl,-E">
+ <Flags SHAREDSUFFIX="so">
+ <Runtime name=GCC_EXEC_PREFIX default="$GCC_BASE/lib/gcc-lib/">
+</Architecture>
+#
+<Architecture name=slc3_gcc323>
+ <client>
+ <Environment name=GCC_BASE>
+ </Environment>
+ <Environment name=GCCBINDIR default="$GCC_BASE/bin">
+ </Environment>
+ <Environment name=CXX value="$GCCBINDIR/c++">
+ </Environment>
+ </client>
+ <Flags CCcompiler="gcc3">
+ <Flags BFARCH="Linux24-gcc3">
+ <Flags MODULEFLAGS="-shared">
+ <Flags CXXDEBUGFLAG="-g">
+ <Flags CPPDEFINES="GNU_GCC">
+ <Flags CPPDEFINES="_GNU_SOURCE">
+ <Flags CXXSHAREDOBJECTFLAGS="-fPIC">
+ <Flags CXXFLAGS="-pedantic -ansi -pthread -pipe">
+ <Flags CXXFLAGS="-O2">
+ <Flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300">
+ <Flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses">
+ <Flags LDFLAGS="-Wl,-E">
+ <Flags CXXSHAREDFLAGS="-Wl,-E">
+ <Flags SHAREDSUFFIX="so">
+ <Runtime name=GCC_EXEC_PREFIX default="$GCC_BASE/lib/gcc-lib/">
+</Architecture>
+# Old RH 7.3:
+<Architecture name=rh73_gcc323>
+ <client>
+ <Environment name=GCC_BASE>
+ </Environment>
+ <Environment name=GCCBINDIR default="$GCC_BASE/bin">
+ </Environment>
+ <Environment name=CXX value="$GCCBINDIR/c++">
+ </Environment>
+ </client>
+ <Flags CCcompiler="gcc3">
+ <Flags BFARCH="Linux24-gcc3">
+ <Flags MODULEFLAGS="-shared">
+ <Flags CXXDEBUGFLAG="-g">
+ <Flags CPPDEFINES="GNU_GCC">
+ <Flags CPPDEFINES="_GNU_SOURCE">
+ <Flags CXXSHAREDOBJECTFLAGS="-fPIC">
+ <Flags CXXFLAGS="-pedantic -ansi -pthread -pipe">
+ <Flags CXXFLAGS="-O2">
+ <Flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300">
+ <Flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses">
+ <Flags LDFLAGS="-Wl,-E">
+ <Flags CXXSHAREDFLAGS="-Wl,-E">
+ <Flags SHAREDSUFFIX="so">
+ <Runtime name=LD_LIBRARY_PATH value="$GCC_BASE/lib" type=path>
+ <Runtime name=GCC_EXEC_PREFIX default="$GCC_BASE/lib/gcc-lib/">
+ <Runtime name=PATH value="$GCCBINDIR" type=path>
+</Architecture>
+#
+# Linux__2.4, ICC v7:
+#
+<Architecture name=Linux_2.4/icc>
+ <client>
+ <Environment name=ICC_BASE>
+ </Environment>
+ <Environment name=ICCBINDIR default="$ICC_BASE/bin">
+ </Environment>
+ <Environment name=CXX value="$ICCBINDIR/c++">
+ </Environment>
+ </client>
+ <Flags CCcompiler="icc7">
+ <Flags BFARCH="Linux24-icc7">
+ <Flags MODULEFLAGS="-shared">
+ <Flags CPPDEFINES="INTEL_ICC">
+ <Flags CXXFLAGS="--exceptions --one_per --no_implicit_include --thread_safe">
+ <Flags CXXO2FLAG="K2 -O2">
+ <Runtime name=LD_LIBRARY_PATH type=path>
+</Architecture>
+</tool>

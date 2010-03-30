@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="HippoDraw" version="1.18.1">
+<lib name="hippo"/>
+<lib name="hippoqt"/>
+<client>
+ <environment name="HIPPODRAW_BASE"/>
+ <environment name="INCLUDE" value="$HIPPODRAW_BASE/include/HippoDraw-1.18.1"/>
+ <environment name="LIBDIR" value="$HIPPODRAW_BASE/lib"/>
+</client>
+</tool>
+</doc>

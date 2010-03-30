@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="GSL" version="1.8">
+<info url="http://www.gnu.org/software/gsl/gsl.html"/>
+<lib name="gsl"/>
+<lib name="gslcblas"/>
+<client>
+ <environment name="GSL_BASE"/>
+ <environment name="LIBDIR" default="$GSL_BASE/lib"/>
+ <environment name="INCLUDE" default="$GSL_BASE/include"/>
+</client>
+</tool>
+</doc>

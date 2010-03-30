@@ -1,0 +1,11 @@
+# Storage locations:
+<ProductStore name=lib type=arch swap=true>
+<ProductStore name=bin type=arch swap=true>
+
+# ClassPaths:
+<ClassPath path=+Project/+Package/src+library>
+<ClassPath path=+Project/+Package/bin+binary>
+
+# Choose a compiler:
+<use name=cxxcompiler>
+

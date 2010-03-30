@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="IGNOMINY" version="IGNOMINY_4_3_0" type="scram">
+<client>
+ <environment name="IGNOMINY_BASE"/>
+ <environment name="INCLUDE" value="$IGNOMINY_BASE/src"/>
+ <environment name="LIBDIR" value="$IGNOMINY_BASE/lib/$SCRAM_ARCH"/>
+</client>
+<runtime name="PATH" value="$IGNOMINY_BASE/bin/$SCRAM_ARCH" type="path"/>
+<runtime name="CLASSPATH" value="$IGNOMINY_BASE/java" type="path"/>
+<runtime name="IRST_CONFIG_DIR" value="$INCLUDE/Ig_Configs/IgRuleCheckerConfig"/>
+<runtime name="CMS_CODING_RULES" value="rulechecker.BaseRuleChecker"/>
+<use name="Graphviz"/>
+</tool>
+</doc>

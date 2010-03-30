@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="sigcpp" version="2.0.17">
+<lib name="sigc-2.0"/>
+<client>
+ <environment name="SIGCPP_BASE"/>
+ <environment name="LIBDIR" default="$SIGCPP_BASE/lib"/>
+ <environment name="INCLUDE" default="$SIGCPP_BASE/include/sigc++-2.0"/>
+</client>
+</tool>
+</doc>

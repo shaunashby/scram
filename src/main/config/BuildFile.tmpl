@@ -1,0 +1,67 @@
+# -*-toolbox-*-
+
+<Architecture name=slc3_ia32_gcc323>
+<Flags CXXFLAGS="-O0 -g -DDEBUG">
+<Flags FFLAGS="-O0 -g -DDEBUG">
+<makefile>
+F77compiler:=g77
+CCcompiler:=gcc3
+CXXFLAGS := $(patsubst -O2,,$(CXXFLAGS))
+</makefile>
+</Architecture>
+
+
+<Architecture name=slc3_ia32_gcc323_dbg>
+<Flags CXXFLAGS="-O0 -g -DDEBUG">
+<makefile>
+F77compiler:=g77
+CCcompiler:=gcc3
+CXXFLAGS := $(patsubst -O2,,$(CXXFLAGS))
+</makefile>
+</Architecture>
+
+<Architecture name=slc4_ia32_gcc345>
+<Flags CXXFLAGS="-O0 -g -DDEBUG">
+<Flags FFLAGS="-O0 -g -DDEBUG">
+<makefile>
+F77compiler:=g77
+CCcompiler:=gcc3
+</makefile>
+</Architecture>
+
+<Architecture name=slc4_ia32_gcc345_dbg>
+<Flags CXXFLAGS="-O0 -g -DDEBUG">
+<makefile>
+F77compiler:=g77
+CCcompiler:=gcc3
+CXXFLAGS := $(patsubst -O2,,$(CXXFLAGS))
+</makefile>
+</Architecture>
+
+# Storage locations:
+<ProductStore name=lib type=arch swap=true>
+<ProductStore name=bin type=arch swap=true>
+<ProductStore name=test type=arch swap=true>
+<ProductStore name=logs type=arch swap=true>
+<ProductStore name=doc>
+<ProductStore name=python>
+<ProductStore name=module type=arch swap=true>
+
+# ClassPaths:
+<ClassPath path=+Project/+SubSystem/+Package/scripts+scripts>
+<ClassPath path=+Project/Documentation+Documentation/+doc>
+<ClassPath path=+Project/+SubSystem/+Package/src+library>
+<ClassPath path=+Project/+SubSystem/+Package/bin+binary>
+<ClassPath path=+Project/+SubSystem/+Package/test+test>
+<ClassPath path=+Project/+SubSystem/+Package/plugins+plugins>
+<ClassPath path=+Project/+SubSystem/+Package/data+data_install>
+<ClassPath path=+Project/+SubSystem/+Package/python+python>
+
+# Add use for SCRAM-managed projects we're going to use 
+# (this ensures that we end up with LIBDIR and INCLUDE from each):
+<use name=seal>
+<use name=pool>
+<use name=coral>
+
+# Choose a compiler:
+<use name=cxxcompiler>

@@ -1,0 +1,45 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: dict_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-03-12 10:30:42+0100
+# Revision: $Id: lcgdict_template.tmpl,v 1.3 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+# Define macro for creating or updating the .reg file for the capabilities module:
+[% INCLUDE plugin_template.tmpl plugin_name="${safename}Capabilities" plugin_name_force=1 -%]
+# Back to the rules:
+[% safename %]_files      += $(foreach h,[% headers.join(" ") %],$([% safename %]_objdir)/$(h)_rflx.cpp)
+[% safename %]_objs       += $(foreach h,[% headers.join(" ") %],$([% safename %]_objdir)/$(h)_rflx.$(OBJEXT))
+[% safename %]_id_dictobj += $(foreach h,[% headers.join(" ") %],$([% safename %]_objdir)/$(h)_ids.$(OBJEXT))
+[% safename %]_CDICT_LDFLAGS:= $(LDFLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safename %]_LIBDIR)) -l[% safename %] $([% safename %]_LDLIBS)
+[% safename %]_GENREFLEX_ARGS:= [% genreflex_args %]
+[% IF rootmap -%]
+[% safename %]_GENREFLEX_ARGS += --rootmap=$(MODULE_PREFIX)[% safename %]Capabilities.rootmap --rootmap-lib=$(MODULE_PREFIX)[% safename %]Capabilities.$(SHAREDSUFFIX)
+[% END %]
+# The LCG dictionary rule:
+[% safename %]_all       += $([% safename %]_objdir)/$(MODULE_PREFIX)[% safename %]Capabilities.$(SHAREDSUFFIX)
+$([% safename %]_objdir)/$(MODULE_PREFIX)[% safename %]Capabilities.$(SHAREDSUFFIX): $([% safename %]_id_dictobj) $(WORKINGDIR)/cache/prod/[% safename %]
+	$(call link_capabilities,[% safename %],[% logname %])
+[% safename %]_clean::
+	$(call clean_prod,$(SCRAMSTORENAME_LIB)/$(MODULE_PREFIX)[% safename %]Capabilities.$(SHAREDSUFFIX))
+[% IF rootmap -%]	
+	$(call clean_prod,$(SCRAMSTORENAME_LIB)/$(MODULE_PREFIX)[% safename %]Capabilities.rootmap)
+[% END %]
+[% FOREACH header = classes_h -%]
+[% bname = headers.${loop.index} -%]
+[% xml = classes_def_xml.${loop.index} -%]
+$([% safename %]_objdir)/[% bname %]_rflx.cpp: [% header %] [% xml %] $([% safename %]_objdir)/config
+	$(call generate_lcgdict,[% safename %],[% logname %],[% xml %],[% header %],[% bname %]_ids.cc)
+$([% safename %]_objdir)/[% bname %]_ids.cc: $([% safename %]_objdir)/[% bname %]_rflx.cpp
+$([% safename %]_objdir)/[% bname %]_rflx.$(OBJEXT): $([% safename %]_objdir)/[% bname %]_rflx.cpp
+	$(call compile_lcgdict,[% safename %],[% logname %])
+$([% safename %]_objdir)/[% bname %]_ids.$(OBJEXT): $([% safename %]_objdir)/[% bname %]_ids.cc
+	$(call compile_cxx,[% safename %],[% logname %])
+-include $([% safename %]_objdir)/[% bname %]_rflx.cpp.d
+[% END -%]

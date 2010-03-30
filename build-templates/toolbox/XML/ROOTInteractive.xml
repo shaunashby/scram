@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="ROOTInteractive" version="5.14.00b-pCMS1">
+<lib name="Rint"/>
+<lib name="GQt"/>
+<use name="qt"/>
+<use name="ROOT"/>
+</tool> 
+</doc>

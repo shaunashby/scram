@@ -1,0 +1,19 @@
+SCRAM V1_1_0 Release Notes
+==========================
+
+
+Version V1_1_0
+--------------
+
+	- Full support for XML in all SCRAM documents. Older document
+	  markup is no longer supported (it is therefore a requirement
+	  that all documents are migrated to proper XML syntax before
+	  this release can be used).
+
+	- Added support for new types of build products: plugin and
+	  unittest. How these are handled by the Build System can be
+	  controlled via the build templates.
+
+	- Bug fixes (full details in the bug digest): #XXXX,
+	  #YYYY,#ZZZZ
+

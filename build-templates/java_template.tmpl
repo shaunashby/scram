@@ -1,0 +1,62 @@
+# -*- makefile -*-
+[% USE core = PluginCore -%]
+[% variables = core.variables() -%]
+# Get all variable defs from tools:
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END %]
+# Dump out any data from MAKEFILE tags:
+[% core.data("MAKEFILE") %]
+
+[% safepath %]_javadir := $(LOCALTOP)/[% path %]
+[% safepath %]_javadirs := $([% safepath %]_javadir)
+[% safepath %]_SKIP_FILES := CVS BuildFile [% core.flags("SKIP_FILES") %]
+[% safepath %]_SKIP_SCRIPTS := [% core.flags("SKIP_SCRIPTS") %]
+[% safepath %]_FILE_COMPILATION_ORDER := $(subst :, " ",[% core.flags("FILE_COMPILATION_ORDER") %])
+[% safepath %]_files := [% core.flags("FILE_COMPILATION_ORDER") %]
+[% safepath %]_files += $(notdir $(wildcard $(foreach dir,$([% safepath %]_javadirs),$(dir)/*.java)))
+[% safepath %]_files := $(filter-out $([% safepath %]_SKIP_FILES), $([% safepath %]_files))
+[% safepath %]_files := $(filter-out $([% safepath %]_SKIP_SCRIPTS), $([% safepath %]_files))
+[% safepath %]_workdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_workfiles := $(addprefix $([% safepath %]_workdir)/, $(addsuffix .done, $(basename $(notdir $([% safepath %]_files)))))
+
+# Configuration dependencies:
+[% FOREACH bf IN core.bfdeps() -%]
+[% safepath %]_BuildFile+=[% bf.key %]
+[% END -%]
+[% safepath %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath %]_BuildFile)
+
+.PHONY: [% safepath %]_all [% safepath %] [% safepath %]_help [% safepath %]_clean
+[% safepath %]_all: [% safepath %]
+[% safepath %]_help:
+	@echo "Help for building at [% path %]:"
+
+[% safepath %]_clean:
+	@echo "Cleaning local working directory: $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"
+	@for f in $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/* ; do	\
+	  rm -rf $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)/`basename $$f` ;	\
+	done
+	@/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+ifneq ($(strip $([% safepath %]_files)),)
+[% safepath %]: $([% safepath %]_workfiles)
+	@for f in `ls $([% safepath %]_workdir)/ | grep -v .done`; do			\
+	  echo ">> Copying $$f => $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)" ; 		\
+	  cp -rpf $([% safepath %]_workdir)/$$f $(LOCALTOP)/$(SCRAMSTORENAME_JAVA)/ ;	\
+	done
+
+$([% safepath %]_workdir)/%.done: $([% safepath %]_javadir)/%.java $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(JAVAC) -classpath $(@D):$$CLASSPATH -d $(@D) $<
+	@touch $@
+
+else
+
+[% safepath %]:
+	@echo "No java files to compile. Nothing to be done."
+
+endif
+#
+# End of stub
+#

@@ -1,0 +1,20 @@
+[% common.doLCGWrapperStuff() -%]
+SEAL_PLUGIN_DIR:=$(SCRAMSTORENAME_LIB_MODULES)
+ifeq ($(wildcard $(WORKINGDIR)/cache/project_includes),)
+.NOTPARALLEL: $(WORKINGDIR)/cache/project_includes SealModuleLoadCheck
+prebuild += $(WORKINGDIR)/cache/project_includes SealModuleLoadCheck
+else
+prebuild += SealModuleLoadCheck
+endif
+$(WORKINGDIR)/cache/project_includes: SealPlatform
+	@for f in $(LOCALTOP)/src/*/*; do                        \
+	  [ -d $$f ] || continue;                               \
+	  case $$f in */CVS ) continue ;; esac;                 \
+	  name=`basename $$f`;                                  \
+	  if [ -d $$f/$$name ]; then                            \
+	    mkdir -p $(LOCALTOP)/include/$$name;                \
+	    (cd $$f/$$name; find . -type f -print | grep -v CVS | \
+	    cpio -dmp $(LOCALTOP)/include/$$name);              \
+	  fi;                                                   \
+	done
+	@touch $@; echo $(@F) DONE

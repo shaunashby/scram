@@ -1,0 +1,5 @@
+# -*- toolbox -*-
+<require name=UUID            version=1.32             url="file:/UUID"></require>
+<require name=Boost           version=1.31.0           url="file:/Boost"></require>
+#
+<require name=cxxcompiler     version=3.2.3	       url="file:/cxxcompiler"></require>

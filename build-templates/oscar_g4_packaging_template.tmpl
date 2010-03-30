@@ -1,0 +1,52 @@
+[%# -*-makefile-*-
+#____________________________________________________________________ 
+# File: oscar_g4_packaging_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2005-04-20 12:00:24+0200
+# Revision: $Id$ 
+#
+# Copyright: 2005 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE package = PluginCore -%]
+[% variables = package.variables() -%]
+[%# Get all variable defs from tools:
+%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+
+# Variables needed for the code import:
+[% safepath %]_g4packaging_URL:=http://www.geant4.com/hadronics/GHAD/HomePage/geant4.6.1/lists
+[% safepath %]_g4packaging_G4LIBNAME:=G4packaging
+
+.PHONY: [% safepath %]_all [% safepath %]
+[% safepath %]_all: [% safepath %]
+
+[% safepath %]_subdirs+=[% package.safesubdirs() %]
+[% safepath %]: [% safepath %]_g4packaging $([% safepath %]_subdirs)
+	@echo ">> Package Packaging (with special G4 code import) built"
+
+[% safepath %]_clean:
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help:
+	@echo "Help for building at [% path %]:"
+
+[% safepath %]_g4packaging:
+	@echo "** GEANT4 Packaging rule **"
+	@mkdir -p $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/G4TMP
+	@cd $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/G4TMP; \
+	echo "   Downloading files from GEANT4 WWW site"; \
+	wget $([% safepath %]_g4packaging_URL)/Packaging.tar >/dev/null 2>&1; \
+	tar -xvf ./Packaging.tar >/dev/null 2>&1; \
+	cp -rp ./Packaging $([% safepath %]_g4packaging_G4LIBNAME); \
+	cp -p $(G4SRC)/examples/extended/electromagnetic/TestEm1/*/G4eBremsstrahlungCMS.* $(LOCALTOP)/[% path %]/src; \
+	mv $([% safepath %]_g4packaging_G4LIBNAME)/include/*.* $([% safepath %]_g4packaging_G4LIBNAME)/src; \
+	cp -p $(LOCALTOP)/[% path %]/src/*.* $([% safepath %]_g4packaging_G4LIBNAME)/src; \
+	mv $([% safepath %]_g4packaging_G4LIBNAME)/src/*.* $(LOCALTOP)/[% path %]/src; \
+	rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/G4TMP

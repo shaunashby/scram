@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="photos215" version="1.0">
+ <lib name="photos215"/>
+ <use name="genser"/>
+ <use name="f77compiler"/>
+</tool>
+</doc>
+

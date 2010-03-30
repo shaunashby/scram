@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="ROOTRflx" version="5.14.00b-pCMS1">
+<info url="http://root.cern.ch/root/"/>
+<lib name="Reflex"/>
+<client>
+ <environment name="ROOTRFLX_BASE"/>
+ <environment name="LIBDIR" default="$ROOTRFLX_BASE/root/lib"/>
+ <environment name="INCLUDE" default="$ROOTRFLX_BASE/root/include"/>
+</client>
+<use name="sockets"/>
+<use name="gccxml"/>
+<runtime name="PATH" value="$ROOTRFLX_BASE/root/bin" type="path"/>
+<runtime name="ROOTSYS" value="$ROOTRFLX_BASE/root"/>
+<runtime name="GENREFLEX" value="$ROOTRFLX_BASE/root/bin/genreflex"/>
+</tool>
+</doc>

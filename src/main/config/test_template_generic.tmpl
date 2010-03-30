@@ -1,0 +1,48 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: test_template_generic.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-04-21 17:12:26+0200
+# Revision: $Id: test_template_generic.tmpl,v 1.4 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% PROCESS logging_template.tmpl -%]
+.PHONY: [% safename %] [% safename %]_clean [% safename %]_all [% safename %]_runtests
+[% safename %]_objdir := $(WORKINGDIR)/[% path %]/[% safename %]
+[% safename %]_clean::
+	$(call clean_path,$([% safename %]_objdir))
+[% PROCESS buildfile_check.tmpl packremoveonly=1 -%]
+[% IF core.productfiles() != "" -%]
+[% FOREACH flag = [ "CXXFLAGS" "CFLAGS" "FFLAGS" "CPPDEFINES" "LDFLAGS" ] -%]
+[% safename %]_[% flag %]   := $([% flag %]) [% core.flags(flag) %]
+[% END -%]
+[% FOREACH data = [ "INCLUDE" "LIB" "LIBDIR" ] -%]
+[% safename %]_[% data %]   := $([% data %]) [% core.data(data) %]
+[% END -%]
+[% safename %]_LIBDIR       := $(LIBDIR)  $(filter-out $(LIBDIR),$(filter $(LOCALTOP)/%,[% core.data("LIBDIR") %]))
+[% safename %]_LDLIBS       += $(addprefix -l,$([% safename %]_LIB))
+[% safename %]_ALL_INCLUDES += $(addprefix -I,$([% safename %]_INCLUDE))
+[% safename %]_CPPFLAGS     += $(addprefix -D,$([% safename %]_CPPDEFINES)) $([% safename %]_ALL_INCLUDES) 
+[% safename %]_LDFLAGS      += $(addprefix -L,$([% safename %]_LIBDIR)) $([% safename %]_LDLIBS)
+[% safename %]_srcdir       := $(LOCALTOP)/[% path %]
+[% safename %]_files        := [% core.productfiles() %]
+[% safename %]_objs         := $(addprefix $([% safename %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $([% safename %]_files))))
+[% safename %]_deps         := $(addprefix $(WORKINGDIR)/cache/prod/, $([% safename %]_LIB))
+[% safename %]_libdeps      := $(addprefix $(WORKINGDIR)/cache/prod/lib, $([% safename %]_LIB))
+[% safename %]_TEST_RUNNER_ARGS :=  [% core.flags("TEST_RUNNER_ARGS") %]
+all_tests += [% safename %]
+[% safename %]_BuildFile  :=[% path %]/BuildFile
+[% safename %]_CONFIGDEPS := $(CONFIGDEPS) $(WORKINGDIR)/cache/bf/[% safename %]
+[% INCLUDE buildfile_check.tmpl packremoveonly=0 -%]
+[% INCLUDE gcc_compile_rules.tmpl type="test" -%]
+[% safename %]_runtests: [% safename %]_all
+	$(call run_test,[% safename %])
+[% ELSE -%]
+[% safename %] [% safename %]_all:
+	@echo "No source files to compile. Nothing to be done for test executable at [% path %]."
+[% END -%]

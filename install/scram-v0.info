@@ -1,0 +1,38 @@
+Package: scram-v0
+Version: 0.20.0
+Revision: 1
+Source: http://eulisse.web.cern.ch/eulisse/fink/scram-0.20.0.tar.gz
+Maintainer: Giulio Eulisse <Giulio.Eulisse@cern.ch>
+Homepage: http://spi.cern.ch/cgi-bin/scrampage.cgi
+License: Unknown
+Description: CMS software build system
+Source-MD5: 2608c0d8e22b1373d4094aebbfdda950
+
+InstallScript: <<
+#!/usr/bin/env sh
+echo "SCRAM is a perl script, no need to compile"
+echo `pwd`
+thisdir="%b"
+scram_ver=V`echo %v | tr . _`
+destdir="%i/lib/scram/$scram_ver"
+execdir="%i/bin"
+basedir="%p/lib/scram/$scram_ver"
+echo $thisdir
+echo $execdir
+echo $destdir
+mkdir -p $destdir/scramdb
+chmod 755 $destdir/scramdb
+mkdir -p $execdir
+cp -r $thisdir/* $destdir/
+chmod -R 755 $destdir
+scramsite='CERN'
+loctools='config/site'
+touch $execdir/scramv0
+cat $thisdir/Installation/scramwrapper | sed -e "s|__basedir__|$basedir|g;s|__perlexe__|/usr/bin/env perl|g;s|__scramsite__|$scramsite|g;s|__loctools__|$loctools|g" > $execdir/scramv0
+mkdir -p $execdir
+chmod 755 $execdir/scramv0
+find %i
+<<
+CompileScript: <<
+echo "Copying scram"
+<<

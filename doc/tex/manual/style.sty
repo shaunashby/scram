@@ -1,0 +1,77 @@
+%=====================================================================================
+% Style file:
+%===================================================================================== 
+\usepackage{fancyhdr}
+\usepackage{a4}
+\usepackage{epsfig}
+\usepackage{html}
+\usepackage{makeidx}
+\usepackage{Vmargin}
+% -------------------------
+% Set the LaTeX unit to mm
+% -------------------------
+\setlength{\unitlength}{1mm}           
+% -------------------------
+% -------------------------------------------------------------
+% Set up the page - left, top, right, bottom, 
+%                   headheight, headsep, footheight,footskip.
+% -------------------------------------------------------------
+\setpapersize{A4}
+% Slightly tweak outside margin:
+%\setmarginsrb{30mm}{10mm}{20mm}{40mm}{10mm}{15mm}{0pt}{10mm}
+% -------------------------------------------------------------
+% Use fancy headings
+% -------------------------------------------------------------
+\pagestyle{fancy}
+%
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+%
+\lhead[\fancyplain{}{\small\sffamily\bfseries\thepage}]
+      {\fancyplain{}{\small\sffamily\bfseries\rightmark}}%
+%
+\rhead[\fancyplain{}{\small\sffamily\bfseries\leftmark}]
+      {\fancyplain{}{\small\sffamily\bfseries\thepage}}%
+%
+\cfoot{}
+%
+\renewcommand{\section}{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {2.3ex \@plus.2ex}%
+                                   {\reset@font\Large\bfseries\rmfamily}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\reset@font\large\bfseries\rmfamily}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\reset@font\normalsize\bfseries\rmfamily}}
+% -------------------------------------------------------------
+% TOC `sees' subsubsections
+% -------------------------------------------------------------
+\setcounter{tocdepth}{3}                   
+\setcounter{secnumdepth}{10}
+% -------------------------------------------------------------
+% Footnote ruler                                          
+% -------------------------------------------------------------
+\renewcommand{\footnoterule}{\vspace*{-3pt}%
+   \qquad\hrulefill\qquad\vspace*{2.6pt}}
+\addtolength{\skip\footins}{3mm}
+% -------------------------------------------------------------
+% Set text normal size
+% -------------------------------------------------------------
+\normalsize            
+% -------------------------------------------------------------
+% Bold table and figure numbers 
+% -------------------------------------------------------------
+\def\fnum@figure{{\bfseries \figurename~\thefigure}}
+\def\fnum@table{{\bfseries \tablename~\thetable}}
+% -------------------------------------------------------------
+% Change counter depth so subsubsection (x.x.x.x) aren't 
+% numbered:
+% -------------------------------------------------------------
+\setcounter{secnumdepth}{2}
+% -------------------------------------------------------------
+% -------------------- The End --------------------------------
+% -------------------------------------------------------------

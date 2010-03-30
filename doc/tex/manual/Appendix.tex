@@ -1,0 +1,369 @@
+%%____________________________________________________________________ 
+%% File: Appendix.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 17:11:52+0100
+%% Revision: $Id: Appendix.tex,v 1.3.6.1 2007/03/02 13:54:00 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\chapter{Appendix}\label{ch:appendix}
+
+\section{\scram\ Function for the ZSH Completion System}
+
+For all users of \texttt{zsh}, a completion function can be defined
+for \scram\ so that command and option completion is possible. The
+completion function below should be saved as \texttt{\_scram}
+somewhere in a user directory. For it to be found by \texttt{zsh}, a
+path variable called \texttt{fpath} must be defined in
+\texttt{.zshenv} or \texttt{.zshrc} to include the
+system-wide \texttt{fpath} and the user one. For example, if the
+completion function was located in a directory called
+\texttt{compfunc} in the user home directory, the following statement 
+\begin{verbatim}
+fpath=(\$fpath \$HOME/compfunc)
+\end{verbatim}
+must be made in the \texttt{zsh} startup files. Note that you may also
+need to activate the completion system by adding
+\begin{verbatim}
+autoload -U compinit
+compinit
+\end{verbatim}
+to your \texttt{.zshrc}.
+
+\ni The completion function is included below in full but can be copied from the
+\texttt{scripts} directory in the \scram\ source tree.
+
+\paragraph{\scram\ completion function}
+\small{
+\begin{verbatim}
+#compdef scram
+# $Id: Appendix.tex,v 1.3.6.1 2007/03/02 13:54:00 sashby Exp $
+#
+_scram()
+{
+    _arguments -s \
+	'-h[show help]' \
+	'-v[version]' \
+	'-d[debug mode]' \
+	'-n[no return]' \
+	'-arch:supported architectures:(rh73_gcc323 slc3_ia32_gcc323 slc3_ia32_gcc323_dbg osx103_gcc33)' \
+	'*::scram command:_scram_command'
+}
+
+(( $+functions[_scram_command] )) || 
+_scram_command () 
+{
+    local _scram_cmds
+    _scram_cmds=(version arch setup runtime build list project tool \
+                       install remove db config urlget gui)
+
+    if (( CURRENT == 1 )); then
+	_tags _scram_cmds && { compadd "$@" -a _scram_cmds }
+    else
+	local curcontext="$curcontext"
+	cmd="$words[1]"
+	if (( $#cmd )); then
+	    curcontext="${curcontext%:*:*}:scram-${cmd}:"
+            _scram_$cmd
+	else
+	    _message "unknown scram command: $words[1]"
+	fi
+    fi
+}
+
+(( $+functions[_scram_version] )) || 
+_scram_version()
+{
+    _arguments -s \
+	'-h[show help for the version command]:print help for this command' \
+	'-c[show CVS parameters for SCRAM downloads]' \
+	'-i[show CVS commit information]' \
+	'*::specify a version to download:(V1_0_0 V1_0_1 V1_0_2)'
+}
+
+(( $+functions[_scram_arch] )) || 
+_scram_arch()
+{
+    _arguments -s \
+	'-h[show help for the arch command]:print help for this command'
+}
+
+(( $+functions[_scram_setup] )) || 
+_scram_setup()
+{
+#   scram setup [-i] [-f tools.conf] [toolname] [[version] [url]]
+    _arguments -s \
+	- set1 \
+	'-h[show help for the setup command]:print help for this command' \
+	- set2 \
+	'-i[interactive setup mode]' \
+	'-f[file for tool default settings]:tool config defaults:_files -g \*.conf' \
+	"*::tool list:_scram_tools_and_versions"
+}
+
+(( $+functions[_scram_runtime] )) || 
+_scram_runtime()
+{    
+    _arguments -s \
+	- set1 \
+	'-h[show help for the runtime command]:print help for this command' \
+	- set2 \
+	'(-c -w)-s[Bourne-like shell environment]' \
+	'(-s -w)-c[TCSH shell environment]' \
+	'(-c -s)-w[Win32 shell environent]' \
+	'-d[dump the current environment]:filename' \
+	- set3 \
+	'(-c -w)-s[Bourne-like shell environment]' \
+	'(-s -w)-c[TCSH shell environment]' \
+	'(-c -s)-w[Win32 shell environent]' \
+	'-f:read an environment from a file:_files -g \*.env'
+}
+
+(( $+functions[_scram_tool] )) || 
+_scram_tool()
+{    
+    local expl
+    _arguments -s \
+	'-h[show help for the tool command]:print help for this command'
+    
+    if (( $CURRENT == 2 )); then
+	local tooltags
+	tooltags=(list info tag remove template)
+	_wanted cmds expl 'tool sub-command' compadd -a tooltags
+    elif (( $CURRENT == 3 )); then
+	local _scramtools
+	typeset -gA _scramtools
+	
+	if (( ! $#_scramtools )); then
+	    _scramtools=($(_call_program commands scram tool list | grep "^ " 2>&1))
+	fi
+	
+	case "$words[2]" in
+	    list)		
+		_message 'list configured tools'
+		;;
+	    info|remove|tag)
+		if (( $#_scramtools )); then
+		    _wanted tools expl 'list of configured tools' compadd ${(k)_scramtools}
+		else
+		    _message 'No tools: probably not in a project area'    
+		fi
+		;;
+	    template)
+		local tmpltypes
+		tmpltypes=(compiler basic)
+		_wanted tmpl expl 'template type to download' compadd -a tmpltypes
+		;;
+	esac	
+    elif (( $CURRENT == 4 )); then
+	local _toolstags
+	
+	if (( ! $#_toolstags )); then
+	    _toolstags=($(_call_program commands scram tool tag $words[3] 2>&1))
+	fi
+	_wanted ttags expl "tags defined for $words[3]" compadd -a _toolstags
+    fi
+}
+
+(( $+functions[_scram_build] )) || 
+_scram_build()
+{
+    local makeopts
+    makeopts=(
+	'-n[print the commands that would be executed but do not run them]'
+	'--printdir[print the working directory before and after entering it]'
+	'--printdb[print the data base of rules after scanning makefiles, then build as normal]'
+	'-j[the number of processes to run simultaneously]'
+	'-k[continue for as long as possible after an error]'
+	'-s[do not print any output]'
+	'-d[run gmake in debug mode]'
+    )
+    
+    _arguments -s \
+	'-h[show help for the build command]:print help for this command' \
+	'-v[show compilation command]' \
+	'-r[reset cache]' \
+	'-f[skip cache scan]' \
+	'-t[dry run]' \
+	'-w-[graphing mode type]:graphing mode:_scram_graphing' \
+	'--xmlb[Read XML BuildFiles]' \
+	"$makeopts[@]" \
+	'*::targets:(release release-build shared bin test)'
+}
+
+(( $+functions[_scram_list] )) || 
+_scram_list()
+{
+    _arguments -s \
+	'-h[show help for the list command]:print help for this command' \
+	'-c[show a compact list]' \
+	'-o[use old-style listing (i.e. all projects)]' \
+ 	'*::SCRAM project:_scram_projects_and_versions'
+}
+
+(( $+functions[_scram_project] )) || 
+_scram_project()
+{
+    # scram project [-t] [-d <area>] [-n <dir>] [-f <tools.conf>] <projecturl> [<projectversion>]
+    _arguments \
+	- set1 \
+	'-h[show help for the project command]:print help for this command' \
+	- set2 \
+	'-t[download project templates]:download project templates' \
+	- set3 \
+	'-f:file for tool defaults:_files -g \*.conf' \
+	'-b[bootstrap files]:bootstrap:_files -g conf\*/boot\*' \
+	- set4 \
+	'-d:installation directory:_files -/' \
+	'-n[area name]:area name' \
+	'*:::SCRAM project:_scram_projects_and_versions'
+}
+
+(( $+functions[_scram_install] )) || 
+_scram_install()
+{
+    _arguments -s \
+	'-h[show help for the install command]:print help for this command' \
+	'-f[force the installation]' \
+	'*:::optional project label and version'
+}
+
+(( $+functions[_scram_remove] )) || 
+_scram_remove()
+{
+    _arguments -s \
+	'-h[show help for the remove command]:print help for this command' \
+	'-f[force the installation]' \
+	'*:::SCRAM project:_scram_projects_and_versions'
+}
+
+(( $+functions[_scram_db] )) || 
+_scram_db()
+{
+    _arguments -s \
+	'-h[show help for the db command]:print help for this command' \
+	'-link[link to a SCRAM database]:linkdb:_files -g \*\*/project.lookup' \
+	'-unlink[remove linked SCRAM databases]:removedb:_scram_db_unlink' \
+	'-show[show linked SCRAM databases]'   
+}
+
+(( $+functions[_scram_config] )) || 
+_scram_config()
+{
+    _arguments -s \
+	'-h[show help for the config command]:print help for this command' \
+	'-t[dump list of configured tools]' \
+	'-f[dump tools and project config]'
+}
+
+(( $+functions[_scram_urlget] )) || 
+_scram_urlget()
+{
+    _arguments -s \
+	'-h[show help for the urlget command]:print help for this command' \
+	'*::specify a scram document URL:( http:// file: cvs:// )'
+}
+
+(( $+functions[_scram_gui] )) || 
+_scram_gui()
+{
+    _arguments -s \
+	'-h[show help for the gui command]:print help for this command' \
+	'-e[edit metadata]' \
+	'-s[show metadata information]' \
+	'*::metadata type:(tool compiler)'
+}
+
+############# Auxiliary functions ##############
+
+(( $+functions[_scram_tools_and_versions] )) || 
+_scram_tools_and_versions()
+{
+    local _scramtools expl
+    typeset -gA _scramtools
+    
+    if (( ! $#_scramtools )); then
+	_scramtools=($(_call_program commands scram tool list | grep "^ " 2>&1))
+    fi
+    
+    if (( $CURRENT == 2 )); then
+	if (( $#_scramtools )); then
+	    local _version
+	    _version=(${_scramtools[$words[1]]})
+	    _wanted projectver expl 'select tool version' compadd -a _version
+	else
+	    _message 'No tools: probably not in a project area'
+	fi
+    elif (( $CURRENT == 3 )); then 
+	local _urls
+	_urls=(http:// cvs:// file:./)
+	_wanted urls expl 'ToolDoc URLs' compadd $_urls
+    else
+	if (( $#_scramtools )); then
+	    _wanted tools expl 'configured tools' compadd  ${(k)_scramtools}
+	else
+	    _message 'No tools: probably not in a project area'    
+	fi
+    fi
+}
+
+(( $+functions[_scram_db_unlink] )) || 
+_scram_db_unlink()
+{
+    local expl
+
+    _dbs=( $(_call_program dbs scram db -show | grep lookup | grep -v Current 2>/dev/null) )
+    
+    if (( $#_dbs ));then	
+	_wanted scramdb expl 'remove database' compadd -a _dbs
+    else
+	_message 'No databases linked'
+    fi
+}
+
+(( $+functions[_scram_graphing] )) || 
+_scram_graphing()
+{
+    local opts
+    opts=('package' 'global')
+    _wanted graph-mode expl 'graphing mode' compadd -P '=' $opts
+}
+
+(( $+functions[_scram_projects_and_versions] )) || 
+_scram_projects_and_versions()
+{
+    local expl _projects _versions
+    
+    if (( $CURRENT == 2 )); then
+	_versions=( $(_call_program pversions scram l -c $words[1] \
+                             | awk '{print $2}' |sort|uniq 2>/dev/null) )
+	_wanted projectver expl 'select project version' compadd -a _versions
+    else		
+	_projects=( $(_call_program pversions scram l -c | awk '{print $1}' |sort|uniq 2>/dev/null) )
+	if (( $#_projects )); then
+	    _wanted projects expl 'SCRAM project' compadd -a _projects
+	else
+	    _message 'No installed projects'
+	fi	
+    fi
+}
+
+################ Main ###################
+# Run the function with args passed down:
+#########################################
+_scram "$@"
+
+\end{verbatim}}\normalsize
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "SCRAM-manual"
+%%% End: 
+
+%%____________________________________________________________________ 
+%% End of Appendix.tex
+%%____________________________________________________________________ 
+%%  

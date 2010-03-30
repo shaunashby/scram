@@ -1,0 +1,13 @@
+# -*- toolbox -*-
+<doc type=BuildSystem::ToolDoc version=1.0>
+<Tool name=Boost version=1.31.0>
+<info url=http://www.boost.org></info>
+<lib name=boost_thread-gcc-mt>
+<Client>
+<Environment name=BOOST_BASE>The top of the Boost distribution.</Environment>
+<Environment name=LIBDIR default="$BOOST_BASE/lib"></Environment>
+<Environment name=INCLUDE default="$BOOST_BASE/include/boost-1_31">
+</Environment>
+</Client>
+<Runtime name=LD_LIBRARY_PATH value="$LIBDIR" type=path>
+</Tool>

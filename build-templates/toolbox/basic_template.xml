@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+ <doc type="BuildSystem::ToolDoc" version="1.0">
+  <tool name="TOOLNAME" version="1.0">
+   <info url="URLSTRING"/>
+   <lib name="LIBNAME"/>
+   <client>
+     <environment name="TOOLNAME_BASE"/>
+     <environment name="LIBDIR" default=" "/>
+     <environment name="INCLUDE" default=" "/>
+   </client>
+   <runtime name="LD_LIBRARY_PATH" value="$LIBDIR" type="path"/>
+  </tool>
+</doc>

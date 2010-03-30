@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Python" version="2.4.2">
+<lib name="python2.4"/>
+<client>
+ <environment name="PYTHON_BASE"/>
+ <environment name="LIBDIR" default="$PYTHON_BASE/lib"/>
+ <environment name="INCLUDE" default="$PYTHON_BASE/include/python2.4"/>
+ <environment name="PYTHON_COMPILE" default="$PYTHON_BASE/lib/python2.4/compileall.py"/>
+</client>
+<use name="sockets"/>
+<runtime name="PATH" value="$PYTHON_BASE/bin" type="path"/>
+</tool>
+</doc>

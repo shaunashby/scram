@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="dcap" version="1.2.35">
+<use name="dcache_client"/>
+</tool>
+</doc>

@@ -1,0 +1,22 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: dict_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-03-12 10:30:42+0100
+# Revision: $Id: rootdict_template.tmpl,v 1.3 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% safename %]_LinkDef_files          := $(addprefix $([% safename %]_objdir)/, $(patsubst %.h, %.cc, [% rootdictfile %]))
+[% safename %]_CPPFLAGS               += -I$(LOCALTOP)/[% path %]
+[% safename %]_files                  += $([% safename %]_LinkDef_files)
+[% safename %]_objs                   += $(addprefix $([% safename %]_objdir)/, $(patsubst %.h, %.$(OBJEXT), [% rootdictfile %]))
+.PRECIOUS: $([% safename %]_LinkDef_files)
+$([% safename %]_objdir)/%.cc: $([% safename %]_srcdir)/%.h $([% safename %]_objdir)/config
+	$(call generate_rootdict,[% safename %],[% logname %])
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_objdir)/%.cc
+	$(call compile_rootdict,[% safename %],[% logname %])

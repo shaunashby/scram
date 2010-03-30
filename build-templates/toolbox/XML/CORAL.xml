@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="CORAL" version="CORAL_1_7_0" type="scram">
+<client>
+ <environment name="CORAL_BASE"/>
+ <environment name="LIBDIR" default="$CORAL_BASE/$SCRAM_ARCH/lib"/>
+ <environment name="INCLUDE" default="$CORAL_BASE/include"/>
+</client>
+<runtime name="SEAL_PLUGINS" default="$CORAL_BASE/$SCRAM_ARCH/lib/modules" type="path"/>
+</tool>
+</doc>

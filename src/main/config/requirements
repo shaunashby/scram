@@ -1,0 +1,30 @@
+# -*- toolbox -*-
+<doc type=BuildSystem::Requirements version=2.0>
+<base url="cvs://cmscvs.cern.ch/cvs_server/repositories/SCRAMToolBox?auth=pserver&user=anonymous&passkey=AA_:yZZ3e&version=CMS_111_3">
+<include url="cvs:?module=SCRAMToolBox/CMS/Configuration/CMSconfiguration">
+ <select name=cxxcompiler>
+ <select name=clhep>
+ <select name=zlib>
+ <select name=sockets>
+ <select name=python>
+ <select name=boost>
+ <select name=xerces-c>
+ <select name=ROOT>
+ <select name=ROOTCore>
+ <select name=UUID>
+ <select name=OTL>
+ <select name=gsl>
+ <select name=sqlite>
+ <select name=unixODBC>
+ <select name=MyODBC>
+ <select name=mysqlpp>
+ <select name=mysql>
+ <select name=seal>
+ <select name=gccxml>
+ <select name=x11>
+ <select name=boost_python>
+ <select name=boost_regex>
+ <select name=boost_fs>
+ <select name=bz2lib>
+ <select name=pcre>
+</base>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="mimetic" version="0.8.9">
+<lib name="mimetic"/>
+<client>
+ <environment name="MIMETIC_BASE"/>
+ <environment name="LIBDIR" default="$MIMETIC_BASE/lib"/>
+ <environment name="INCLUDE" default="$MIMETIC_BASE/include"/>
+</client>
+</tool>
+</doc>

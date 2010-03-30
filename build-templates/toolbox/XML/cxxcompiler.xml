@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="cxxcompiler" version="3.2.3" type="compiler">
+<!-- SLC3, GCC 3.2.3 -->
+<architecture name="slc3_ia32_gcc323">
+ <client>
+  <environment name="GCC_BASE"/>
+  <environment name="GCCBINDIR" default="$GCC_BASE/bin"/>
+  <environment name="CXX" value="$GCCBINDIR/c++"/>
+ </client>
+ <flags SCRAM_COMPILER_NAME="gcc323"/>
+ <flags CCcompiler="gcc3"/>
+ <flags MODULEFLAGS="-shared"/>
+ <flags CXXDEBUGFLAG="-g"/>
+ <flags CPPDEFINES="GNU_GCC"/>
+ <flags CPPDEFINES="_GNU_SOURCE"/>
+ <flags CXXSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CXXFLAGS="-pedantic -ansi -pthread -pipe"/>
+ <flags CXXFLAGS="-O2"/>
+ <flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300"/>
+ <flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses"/>
+ <flags LDFLAGS="-Wl,-E"/>
+ <flags CXXSHAREDFLAGS="-Wl,-E"/>
+ <flags SHAREDSUFFIX="so"/>
+ <runtime name="LD_LIBRARY_PATH" value="$GCC_BASE/lib" type="path"/>
+</architecture>
+<!-- SLC4, GCC 3.4.5 -->
+<architecture name="slc4_ia32_gcc345">
+ <client>
+  <environment name="GCC_BASE"/>
+  <environment name="GCCBINDIR" default="$GCC_BASE/bin"/>
+  <environment name="CXX" value="$GCCBINDIR/c++"/>
+ </client>
+ <flags SCRAM_COMPILER_NAME="gcc345"/>
+ <flags CCcompiler="gcc3"/>
+ <flags MODULEFLAGS="-shared"/>
+ <flags CXXDEBUGFLAG="-g"/>
+ <flags CPPDEFINES="GNU_GCC"/>
+ <flags CPPDEFINES="_GNU_SOURCE"/>
+ <flags CXXSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CXXFLAGS="-pedantic -ansi -pthread -pipe"/>
+ <flags CXXFLAGS="-O2"/>
+ <flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300"/>
+ <flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses"/>
+ <flags LDFLAGS="-Wl,-E"/>
+ <flags CXXSHAREDFLAGS="-Wl,-E"/>
+ <flags SHAREDSUFFIX="so"/>
+ <runtime name="LD_LIBRARY_PATH" value="$GCC_BASE/lib" type="path"/>
+</architecture>
+<!-- SLC4, AMD64, GCC 3.4.5 -->
+<architecture name="slc4_amd64_gcc345">
+ <client>
+  <environment name="GCC_BASE"/>
+  <environment name="GCCBINDIR" default="$GCC_BASE/bin"/>
+  <environment name="CXX" value="$GCCBINDIR/c++"/>
+ </client>
+ <flags SCRAM_COMPILER_NAME="gcc345"/>
+ <flags CCcompiler="gcc3"/>
+ <flags MODULEFLAGS="-shared"/>
+ <flags CXXDEBUGFLAG="-g"/>
+ <flags CPPDEFINES="GNU_GCC"/>
+ <flags CPPDEFINES="_GNU_SOURCE"/>
+ <flags CXXSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CXXFLAGS="-pedantic -ansi -pthread -pipe"/>
+ <flags CXXFLAGS="-O2"/>
+ <flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300"/>
+ <flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses"/>
+ <flags LDFLAGS="-Wl,-E"/>
+ <flags CXXSHAREDFLAGS="-Wl,-E"/>
+ <flags SHAREDSUFFIX="so"/>
+ <runtime name="LD_LIBRARY_PATH" value="$GCC_BASE/lib" type="path"/>
+</architecture>
+<!--  Mac OS X 10.4, PPC, GNU GCC 4.0 -->
+<architecture name="osx104_ppc_gcc40">
+ <client>
+  <environment name="GCC_BASE"/>
+  <environment name="GCCBINDIR" default="$GCC_BASE/bin"/>
+  <environment name="CXX" value="$GCCBINDIR/c++"/>
+ </client>
+ <flags SCRAM_COMPILER_NAME="gcc40"/>
+ <flags CCcompiler="gcc40"/>
+ <flags MODULEFLAGS=" "/>
+ <flags CXXDEBUGFLAG="-g"/>
+ <flags CPPDEFINES="GNU_GCC"/>
+ <flags CPPDEFINES="_GNU_SOURCE"/>
+ <flags CXXSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CXXFLAGS="-dynamiclib -single_module -pedantic -ansi -pipe"/>
+ <flags CXXFLAGS="-O2"/>
+ <flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300"/>
+ <flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses"/>
+ <flags LDFLAGS=" "/>
+ <flags CXXSHAREDFLAGS=" "/>
+ <flags SHAREDSUFFIX="dylib"/>
+ <runtime name="DYLD_LIBRARY_PATH" value="$GCC_BASE/lib" type="path"/>
+</architecture>
+<!--  Mac OS X 10.4, INTEL, GNU GCC 4.0 -->
+<architecture name="osx104_ia32_gcc40">
+ <client>
+  <environment name="GCC_BASE"/>
+  <environment name="GCCBINDIR" default="$GCC_BASE/bin"/>
+  <environment name="CXX" value="$GCCBINDIR/c++"/>
+ </client>
+ <flags SCRAM_COMPILER_NAME="gcc40"/>
+ <flags CCcompiler="gcc40"/>
+ <flags MODULEFLAGS=" "/>
+ <flags CXXDEBUGFLAG="-g"/>
+ <flags CPPDEFINES="GNU_GCC"/>
+ <flags CPPDEFINES="_GNU_SOURCE"/>
+ <flags CXXSHAREDOBJECTFLAGS="-fPIC"/>
+ <flags CXXFLAGS="-dynamiclib -single_module -pedantic -ansi -pipe"/>
+ <flags CXXFLAGS="-O2"/>
+ <flags CXXFLAGS="-felide-constructors -fmessage-length=0 -ftemplate-depth-300"/>
+ <flags CXXFLAGS="-Wall -Wno-non-template-friend -Wno-long-long -Wimplicit -Wreturn-type -Wunused -Wparentheses"/>
+ <flags LDFLAGS=" "/>
+ <flags CXXSHAREDFLAGS=" "/>
+ <flags SHAREDSUFFIX="dylib"/>
+ <runtime name="DYLD_LIBRARY_PATH" value="$GCC_BASE/lib" type="path"/>
+</architecture>
+<flags SCRAM_LANGUAGE_TYPE="C++"/>
+</tool>
+</doc>

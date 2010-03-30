@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="OpenSSL" version="0.9.7d">
+<lib name="ssl"/>
+<lib name="crypto"/>
+<client>
+ <environment name="OPENSSL_BASE"/>
+ <environment name="INCLUDE" default="$OPENSSL_BASE/include"/>
+ <environment name="LIBDIR"  default="$OPENSSL_BASE/lib"/>
+</client>
+</tool>
+</doc>

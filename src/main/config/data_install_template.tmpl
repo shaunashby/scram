@@ -1,0 +1,24 @@
+[%#-*- makefile -*-
+#____________________________________________________________________ 
+# File: data_install_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+# Update: 2005-11-30 12:24:00+0100
+# Revision: $Id: data_install_template.tmpl,v 1.4 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2005 (C) Shaun ASHBY
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% PROCESS tool_variables.tmpl -%]
+[% INCLUDE data_template_generic.tmpl datapath=path -%]
+.PHONY: [% safepath %] [% safepath %]_all [% safepath %]_help [% safepath %]_clean
+[% safepath %]_all [% safepath %]: $([% safepath %]_data_copy_rule)
+[% safepath %]_clean::
+	@:
+[% safepath %]_help:
+	@echo "Help for installing data files for $([% safepath %]_datadir):"

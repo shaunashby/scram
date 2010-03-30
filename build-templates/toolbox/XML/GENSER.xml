@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="GENSER" version="GENSER_1_4_1">
+<client>
+ <environment name="GENSER_BASE"/>
+ <environment name="LIBDIR" default="$GENSER_BASE/$SCRAM_ARCH/lib"/>
+ <environment name="INCLUDE" default="$GENSER_BASE"/>
+</client>
+</tool>
+</doc>

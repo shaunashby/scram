@@ -1,0 +1,48 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: rulechecker_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shahzad Muzaffar <Shahzad Muzaffar@cern.ch>
+# Update: 2005-06-02 11:15:37+0100
+# Revision: $Id: rulechecker_template.tmpl,v 1.4 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shahzad Muzaffar
+#
+#--------------------------------------------------------------------
+%]
+[% IF common.isRuleCheckerEnabled() -%]
+[% safename %]_clean::
+	$(call clean_path,doc/RuleCheck/[% path %])
+ifneq ($(strip $(CMS_RULECHECKER)),)
+ifneq ($(findstring $(LOCALTOP)/$(THISDIR), $(LOCALTOP)/[% path %]),)
+[% safename %]_RULE_VIOL_SKIP_FILES := [% core.flags("RULE_VIOL_SKIP_FILES") %] 
+[% safename %]_RULES_IGNORED        := [% core.flags("RULES_IGNORED") %]
+[% safename %]_viol_cxxfilesuffixes := $(CXXSRC_FILES_SUFFIXES) $(CSRC_FILES_SUFFIXE)
+[% safename %]_viol_cxxfiles        := $(notdir $(wildcard $(foreach dir,$([% safename %]_srcdir),$(foreach ext,$([% safename %]_viol_cxxfilesuffixes),$(dir)/*.$(ext)))))
+$(shell rm -f $([% safename %]_objdir)/config_FILES_TO_ANALYZE.full)
+$(shell touch $([% safename %]_objdir)/config_FILES_TO_ANALYZE.full)
+ifneq ($(strip $([% safename %]_RULE_VIOL_SKIP_FILES)),)
+  [% safename %]_viol_cxxfiles := $(filter-out $([% safename %]_RULE_VIOL_SKIP_FILES), $([% safename %]_viol_cxxfiles))
+endif
+ifneq ($(strip $([% safename %]_SKIP_FILES)),)
+  [% safename %]_viol_cxxfiles := $(filter-out $([% safename %]_SKIP_FILES), $([% safename %]_viol_cxxfiles))
+endif
+[% safename %]_voilation_files  := $(addprefix $([% safename %]_objdir)/, $(addsuffix .$(RULECHECKER_VIOLATION_EXT), $(basename $(notdir $([% safename %]_viol_cxxfiles)))))
+[% safename %]_preprocess_files := $(addprefix $([% safename %]_objdir)/, $(addsuffix .$(RULECHECKER_PREPROCESS_EXT), $(basename $(notdir $([% safename %]_viol_cxxfiles)))))
+[% safename %]_all              += $([% safename %]_objdir)/rulechecker_ran
+-include $(foreach dep,$([% safename %]_preprocess_files),$(dep)d)
+$([% safename %]_objdir)/rulechecker_ran: $([% safename %]_preprocess_files)
+	$(call run_rule_checker,[% safename %],[% logname %],[% path %])
+[% FOREACH ext = [ "cc" "cpp" "cxx" "C" ] -%]
+$([% safename %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safename %]_srcdir)/%.[% ext %] $([% safename %]_objdir)/config
+	$(call preprocess_cxx,[% safename %],[% logname %],[% path %],[% ext %])
+[% END -%]
+# For C:
+[% FOREACH ext = [ "c" ] -%]
+$([% safename %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safename %]_srcdir)/%.[% ext %] $([% safename %]_objdir)/config
+	$(call preprocess_c,[% safename %],[% logname %],[% path %],[% ext %])
+[% END -%]
+endif
+endif
+[% END -%]

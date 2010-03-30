@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="HepPDT" version="2.02.02">
+<lib name="HepPDT"/>
+<lib name="HepPID"/>
+<client>
+ <environment name="HEPPDT_BASE"/>
+ <environment name="LIBDIR" default="$HEPPDT_BASE/lib"/>
+ <environment name="INCLUDE" default="$HEPPDT_BASE/include"/>
+</client>
+<runtime name="HEPPDT_PARAM_PATH" value="$HEPPDT_BASE"/>
+</tool>
+</doc>

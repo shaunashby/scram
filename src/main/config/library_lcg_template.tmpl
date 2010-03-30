@@ -1,0 +1,162 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: library_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: library_lcg_template.tmpl,v 1.2 2004/12/10 13:41:44 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% variables = core.variables() -%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END -%]
+[% FOREACH product IN core.buildproducts() -%]
+[% pobject = product.value -%]
+[% type = pobject.type -%]
+[%# Check type. We do this for normal lib builds because some src dirs might contain e.g. stubs for 2nd library:
+%]
+[% SWITCH type -%]
+[% CASE "lib" -%]
+[% lib_safename = product.key -%]
+[% rvl = core.thisproductdata(lib_safename) -%]
+[% lib_files = core.productfiles() %]
+[% lib_name = core.productname() %]
+[% INCLUDE extra_library_template.tmpl %]
+[% END -%]
+[% END -%]
+# Dump out any data from MAKEFILE tags:
+[% core.data("MAKEFILE") %]
+# Compiler flags for this build env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+[% safepath %]_CXXFLAGS   := $(CXXFLAGS) [% core.flags("CXXFLAGS") %] 
+[% safepath %]_CCFLAGS    := $(CCFLAGS) [% core.flags("CCFLAGS") %] 
+[% safepath %]_FFLAGS     := $(FFLAGS) [% core.flags("FFLAGS") %] 
+[% safepath %]_CPPDEFINES := $(CPPDEFINES) [% core.flags("CPPDEFINES") %] 
+[% safepath %]_INCLUDE:=$(INCLUDE) [% core.data("INCLUDE") %]
+[% safepath %]_LIB:=[% core.data("LIB") %]
+[% safepath %]_LIBDIR:=$(LIBDIR) [% core.data("LIBDIR") %]
+[% safepath %]_LDLIBS:=$(addprefix -l,$([% safepath %]_LIB))
+[% safepath %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_INCLUDE))
+[% safepath %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_CPPDEFINES)) $([% safepath %]_ALL_INCLUDES)
+[% safepath %]_LDFLAGS:= $(LD_FLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_LIBDIR)) $([% safepath %]_LDLIBS)
+[% safepath %]_objdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_deps := [% core.pkdeps() %]
+[% safepath %]_filesuffixes:= cc cpp cxx C c f f77 F F77
+[% safepath %]_filesrcdirs = $([% safepath %]_srcdir)
+[% safepath %]_files += $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_filesuffixes),$(dir)/*.$(ext)))))
+
+[% safepath %]_objs := $(addprefix $([% safepath %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $(notdir $([% safepath %]_files)))))
+
+[%# Add support for dictionaries. This template will add the newly-generated files to
+# the list of files for this directory (library). It should also take care of the 
+# object file creation step and add these to safepath_objs:
+%]
+[% INCLUDE dict_template.tmpl -%]
+
+# Variable containing all lib targets:
+all_libraries += [% safepath %]
+
+# Configuration dependencies:
+[% FOREACH bf IN core.bfdeps() -%]
+[% safepath %]_BuildFile+=[% bf.key %]
+[% END -%]
+[% safepath %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath%]_BuildFile)
+
+# vpaths for sources:
+vpath %.cc $([% safepath %]_filesrcdirs)
+vpath %.cpp $([% safepath %]_filesrcdirs) 
+vpath %.cxx $([% safepath %]_filesrcdirs)
+vpath %.C $([% safepath %]_filesrcdirs)
+vpath %.c $([% safepath %]_filesrcdirs)
+vpath %.f $([% safepath %]_filesrcdirs)
+vpath %.f77 $([% safepath %]_filesrcdirs)
+vpath %.F $([% safepath %]_filesrcdirs)
+vpath %.F77 $([% safepath %]_filesrcdirs)
+
+# Protect against no files scenario:
+ifneq ($(strip $([% safepath %]_files)),)
+.PHONY : [% safepath %] [% safepath %]_lib [% core.name() %] shared
+[% safepath %]_all: [% safepath %]
+
+[% safepath %]: $([% safepath %]_deps) [% safepath %]_lib $(all_[% safepath %]_extra_libraries)
+
+# Rule for package build (a shortcut or something more easily typed):
+[% core.name() %]: [% safepath %]
+
+# Library rule:
+shared [% safepath %]_lib: [% safepath %]_build_dict $([% safepath %]_objdir)/liblcg_[% core.name() %].$(SHAREDSUFFIX)
+
+$([% safepath %]_objdir)/liblcg_[% core.name() %].$(SHAREDSUFFIX): $([% safepath %]_objs)
+	@echo ">> Building shared library $@"
+	$(VERB)$(CXX) $([% safepath %]_CXXFLAGS) $(CXXSHAREDFLAGS) $^ -o $@ -shared $([% safepath %]_LDFLAGS)
+	$(VERB)$(copy_lib_to_main_productstore)
+
+[% safepath %]_clean: $(all_[% safepath %]_extra_libraries_clean)
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help: $(all_[% safepath %]_extra_libraries_help)
+	@echo "Help for building libraries at [% path %]:"
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cc $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cpp $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.cxx $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.C $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# For C:
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.c $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CC)  -c $([% safepath %]_CPPFLAGS) $([% safepath %]_CFLAGS) $([% safepath %]_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@
+
+# For FORTRAN:
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.f $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.f77 $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.F $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/%.$(OBJEXT): $([% safepath %]_srcdir)/%.F77 $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(FC) -c $([% safepath %]_CPPFLAGS) $([% safepath %]_FFLAGS) $([% safepath %]_FOPTIMISEDFLAGS) $(FCSHAREDOBJECTFLAGS) $< -o $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_objs:.$(OBJEXT)=.d),$d)
+else
+[% safepath %]_all: [% safepath %]
+[% safepath %]:
+	@echo "No source files to compile. Nothing to be done."
+endif

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Graphviz" version="1.9">
+<info url="http://www.research.att.com/sw/tools/graphviz/"/>
+<client>
+ <environment name="GRAPHVIZ_BASE"/>
+ <environment name="GRAPHVIZ_BINDIR" default="$GRAPHVIZ_BASE/bin"/>
+ <environment name="LIBDIR" default="$GRAPHVIZ_BASE/lib/graphviz"/>
+</client>
+<runtime name="PATH" value="$GRAPHVIZ_BINDIR" type="path"/>
+</tool>
+</doc>

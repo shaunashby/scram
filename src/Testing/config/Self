@@ -1,0 +1,15 @@
+# -*- toolbox -*-
+<doc type=BuildSystem::ToolDoc version=1.0>
+<Tool name=SELF version=SELF>
+<Client>
+ <Environment name=LIBDIR value="$LOCALTOP/lib/$SCRAM_ARCH">
+ </Environment>
+ <Environment name=BINDIR value="$LOCALTOP/bin/$SCRAM_ARCH">
+ </Environment>
+</Client>
+<Runtime name=BASE_PATH value="$LOCALTOP">
+<Runtime name=LD_LIBRARY_PATH value="$LIBDIR" type=path>
+<Runtime name=PATH value="$BINDIR" type=path>
+<Flags CPPDEFINES="PROJECT_NAME=$(SCRAM_PROJECTNAME)">
+<Flags CPPDEFINES="PROJECT_VERSION=$(SCRAM_PROJECTVERSION)">
+</Tool>

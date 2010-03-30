@@ -1,0 +1,32 @@
+override define copy_bin_to_main_productstore
+  desdir=$(LOCALTOP)/$(SCRAMSTORENAME_BIN) &&\
+  if [ "X`basename $($(1)_srcdir)`" = "Xtests" ] ; then \
+    desdir=$(LOCALTOP)/$(SCRAMSTORENAME_TESTS_BIN); \
+  else \
+    if [ "X`echo $($(1)_srcdir) | grep '/src/Tests/'`" != "X" ] ; then \
+      desdir=$(LOCALTOP)/$(SCRAMSTORENAME_TESTS_BIN); \
+    fi;\
+  fi &&\
+  if [ ! -d $$desdir ] ; then \
+      mkdir -p $$desdir > /dev/null 2>&1 &&\
+      echo "Creating product storage directory: $desdir"; \
+  fi &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $$desdir
+endef    
+override define copy_lib_to_main_productstore
+  desdir=$(LOCALTOP)/$(SCRAMSTORENAME_LIB) &&\
+  if [ "X`basename $($(1)_srcdir)`" = "Xtests" ] ; then \
+    desdir=$(LOCALTOP)/$(SCRAMSTORENAME_TESTS_LIB); \
+  else \
+    if [ "X`echo $($(1)_srcdir) | grep '/src/Tests/'`" != "X" ] ; then \
+      desdir=$(LOCALTOP)/$(SCRAMSTORENAME_TESTS_LIB); \
+    fi;\
+  fi &&\
+  if [ ! -d $$desdir ] ; then \
+      mkdir -p $$desdir > /dev/null 2>&1 &&\
+      echo "Creating product storage directory: $desdir"; \
+  fi &&\
+  echo "Copying $@ to productstore area:" &&\
+  cp $@ $$desdir
+endef

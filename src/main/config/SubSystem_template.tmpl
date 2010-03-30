@@ -1,0 +1,26 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: SubSystem_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: SubSystem_template.tmpl,v 1.11 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE subsystem = PluginCore -%]
+[% USE common = CustomPlugin(subsystem) -%]
+all_subsystems+=[% subsystem.name() %]
+.PHONY: [% subsystem.name() %] [% subsystem.name() %]_clean [% subsystem.name() %]_help [% safepath %] [% safepath %]_all [% safepath %]_clean [% safepath %]_help [% path %]
+[% path %] [% subsystem.name() %] [% safepath %]_all [% safepath %]: [% subsystem.safesubdirs() %]
+	@echo ">> Subsystem [% subsystem.name() %] built"
+[% subsystem.name() %]_clean [% safepath %]_clean:
+	$(call clean_path,$(SCRAM_INTwork)/[% path %])
+[% subsystem.name() %]_help [% safepath %]_help:
+	@echo "Help for building at [% path %]:"
+.PHONY: [% safepath %]_runtests
+[% safepath %]_runtests: $(addsuffix _runtests, [% subsystem.safesubdirs() %])
+	@echo ">> Tests for subsystem $(patsubst src/%,%,[% path %]) ran."

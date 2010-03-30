@@ -1,0 +1,14 @@
+[%#-*-makefile-*-
+#######################################################################
+# Makefile for exporting the scripts of a Package                     # 
+#######################################################################
+%]
+[% safepath %]_INPUTDIR := $(LOCALTOP)/[% classdir %]
+[% safepath %]_OUTPUTDIR := $(LOCALTOP)/$(SCRAM_ARCH)/bin
+.PHONY: [% safepath %]
+[% safepath %]:
+	@echo ">> Copying scripts from $([% safepath %]_INPUTDIR) to $([% safepath %]_OUTPUTDIR)"
+	@if [ ! -d $([% safepath %]_OUTPUTDIR) ]; then \
+	 mkdir -p $([% safepath %]_OUTPUTDIR) > /dev/null 2>&1; \
+	fi
+	@/bin/cp -r $([% safepath %]_INPUTDIR)/* $([% safepath %]_OUTPUTDIR)

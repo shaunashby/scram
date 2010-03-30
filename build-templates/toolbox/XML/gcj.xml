@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="gcj" version="3.2.3">
+<client>
+ <environment name="GCJ_BASE"/>
+ <environment name="GCJ" value="$GCJ_BASE/bin/gcj"/>
+</client>
+<runtime name="GCJ_HOME" default="$GCJ_BASE"/>
+<flags SCRAM_COMPILER_NAME="gcc323"/>
+<flags SCRAM_LANGUAGE_TYPE="JAVA"/>
+</tool>
+</doc>

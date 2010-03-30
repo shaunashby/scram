@@ -1,0 +1,105 @@
+[%# -*-Makefile-*-
+-%]
+[% common.setLibPath() -%]
+[% SWITCH type -%]
+[% CASE "lib" -%]
+[% safename %]_product := $(MODULE_PREFIX)[% safename %].$(SHAREDSUFFIX)
+[% safename %]:  $([% safename %]_objdir)/$([% safename %]_product)
+$(WORKINGDIR)/cache/prod/[% safename %]: $([% safename %]_objdir)/$([% safename %]_product)
+	@if [ ! -f $@ ] ; then touch $@; fi
+$([% safename %]_objdir)/$([% safename %]_product): $([% safename %]_objdir)/compile $([% safename %]_libdeps)
+	$(call link_lib,[% safename %],[% logname %])
+[% IF libpath == 1 -%]
+	@$([% logname %]_startlog)echo "Leaving library rule at $(patsubst src/%/src,%,[% path %])" $([% logname %]_endlog)
+[% END -%]
+[% safename %]_clean::
+	$(call clean_prod,$(SCRAMSTORENAME_LIB)/$([% safename %]_product))
+[% CASE "bin" -%]
+[% safename %]_product := [% safename %]
+[% safename %]:  $([% safename %]_objdir)/[% safename %]
+$([% safename %]_objdir)/[% safename %]: $([% safename %]_objdir)/compile $([% safename %]_libdeps)
+	$(call build_bin,[% safename %],[% logname %])
+[% safename %]_clean::
+	$(call clean_prod,$(SCRAMSTORENAME_BIN)/[% safename %])
+[% CASE "test" -%]
+[% safename %]_product := [% safename %]
+[% safename %]:  $([% safename %]_objdir)/[% safename %]
+$([% safename %]_objdir)/[% safename %]: $([% safename %]_objdir)/compile $([% safename %]_libdeps)
+	$(call build_test,[% safename %],[% logname %])
+[% safename %]_clean::
+	$(call clean_prod,$(SCRAMSTORENAME_TEST)/[% safename %])
+[% CASE "python" -%]
+[% safename %]_product := [% safename %].$(SHAREDSUFFIX)
+[% safename %]:  $([% safename %]_objdir)/$([% safename %]_product)
+$(WORKINGDIR)/cache/prod/[% safename %]: $([% safename %]_objdir)/$([% safename %]_product)
+	@if [ ! -f $@ ] ; then touch $@; fi
+$([% safename %]_objdir)/$([% safename %]_product): $([% safename %]_objdir)/compile $([% safename %]_libdeps)
+	$(call link_pylib,[% safename %],[% logname %])
+[% safename %]_clean::
+	$(call clean_prod,$(SCRAMSTORENAME_PYTHON)/$([% safename %]_product))
+[% CASE "java" -%]
+$([% safename %]_objdir)/: [% safename %]
+	@:
+[% safename %]: $([% safename %]_objdir)/compile
+	$(call copy_java_to_java_productstore,[% safename %],[% logname %])
+[% END -%]
+ifneq ($(strip $([% safename %]_product)),)
+-include $([% safename %]_objdir)/$([% safename %]_product).dep
+#-include $(foreach d,$([% safename %]_objs:.$(OBJEXT)=.d),$d)
+endif
+$(WORKINGDIR)/cache/bf/[% safename %]: $([% safename %]_BuildFile)
+	@touch $@
+$([% safename %]_objdir)/config: $([% safename %]_CONFIGDEPS) $([% safename %]_deps) [% logfile %]
+	$(call config_update,[% safename %],[% logname %])
+[% IF type == "lib" && libpath == 1 -%]
+	@$([% logname %]_startlog)echo "Entering library rule at $(patsubst src/%/src,%,[% path %])" $([% logname %]_endlog)
+[% END -%]
+$([% safename %]_objdir)/precompile: $([% safename %]_objdir)/config $([% safename %]_precompile)
+	@touch $@
+$([% safename %]_objdir)/compile: $([% safename %]_objdir)/precompile $([% safename %]_objs) $([% safename %]_compile)
+	@touch $@
+$([% safename %]_objdir)/link: $([% safename %]_objdir)/compile $([% safename %]_objdir)/$([% safename %]_product) $([% safename %]_link)
+	@touch $@
+[% safename %]_all: $([% safename %]_objdir)/link $([% safename %]_all)
+	@:
+[% common.setValidSourceExtensions() -%]
+# For C++:
+[% FOREACH ext = cxxExtensions -%]
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_srcdir)/%.[% ext %] $([% safename %]_objdir)/precompile
+	$(call compile_cxx,[% safename %],[% logname %])
+[% END -%]
+# For C:
+[% FOREACH ext = cExtensions -%]
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_srcdir)/%.[% ext %] $([% safename %]_objdir)/precompile
+	$(call compile_c,[% safename %],[% logname %])
+[% END -%]
+# For FORTRAN:
+[% FOREACH ext = fortranExtensions -%]
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_srcdir)/%.[% ext %] $([% safename %]_objdir)/precompile
+	$(call compile_fortran,[% safename %],[% logname %])
+[% END -%]
+# unknown [% unknownExtensions -%]:[% unknownExtensions.join(" ") %]
+[% FOREACH ext = unknownExtensions -%]
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_srcdir)/%.[% ext %]
+	@echo "*** ERROR: Not supported extension [% ext %] for file $<" &&\
+	echo "*** ERROR: Please rename the file to use the supported extensions or contact release manager." &&\
+	exit 1
+[% END -%]
+[% IF class == "PYTHON" -%]
+.PRECIOUS: $([% safename %]_objdir)/%_boost.cc
+$([% safename %]_objdir)/%_boost.cc: $([% safename %]_srcdir)/%.pyste $([% safename %]_objdir)/config
+	$(call pyste2boost,[% safename %],[% logname %])
+$([% safename %]_objdir)/%_boost.o: $([% safename %]_srcdir)/%_boost.cc $([% safename %]_objdir)/config
+	$(call compile_boost,[% safename %],[% logname %])
+$([% safename %]_objdir)/%_boost.o: $([% safename %]_objdir)/%_boost.cc
+	$(call compile_boost,[% safename %],[% logname %])
+$([% safename %]_objdir)/[% safename %]_PyWrapper.o: $([% safename %]_objdir)/[% safename %]_PyWrapper.cc
+	$(call compile_pywrapper,[% safename %],[% logname %])
+# Generate wrapper code for the list of modules (*_boost.cc in src dir):
+$([% safename %]_objdir)/[% safename %]_PyWrapper.cc: $([% safename %]_objdir)/config
+	$(call generate_pywrapper,[% safename %],[% logname %])
+[% END -%]
+[% IF class == "JAVA" -%]
+$([% safename %]_workdir)/%.done: $([% safename %]_javadir)/%.java $([% safename %]_objdir)/config
+	$(call compile_java,[% safename %],[% logname %])
+[% END -%]

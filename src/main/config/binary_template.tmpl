@@ -1,0 +1,44 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: product_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: binary_template.tmpl,v 1.11 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% PROCESS tool_variables.tmpl -%]
+[% FOREACH product IN core.buildproducts() -%]
+[% safename = common.fixProductName(product.key) -%]
+[% pobject = product.value -%]
+[% type = pobject.type -%]
+[% SWITCH type -%]
+[% CASE "lib" -%]
+[% safepath %] += [% safename %]_all
+[% safepath %]_clean += [% safename %]_clean
+[% rvl = core.thisproductdata(product.key) -%]
+[% safename %]_files := [% core.productfiles() %]
+[% INCLUDE library_template_generic.tmpl -%]
+[% CASE "bin" -%]
+[% safepath %] += [% safename %]_all
+[% safepath %]_clean += [% safename %]_clean
+[% rvl = core.thisproductdata(product.key) %]
+[% INCLUDE binary_template_generic.tmpl -%]
+[% CASE -%]
+[% common.unsupportedProductType () -%]
+[% END -%]
+[% END -%]
+.PHONY: [% safepath %] [% safepath %]_all [% safepath %]_clean [% safepath %]_help
+[% safepath %] [% safepath %]_all: $([% safepath %])
+	@:
+[% safepath %]_clean: $([% safepath %]_clean)
+	$(call clean_path,$(SCRAM_INTwork)/[% path %])
+[% safepath %]_help:
+	@echo "Help for building binaries at [% path %]:"

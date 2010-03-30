@@ -1,0 +1,25 @@
+[%# -*-Makefile-*-
+-%]
+[% IF common.searchLexYacc() -%]
+# Add sources generated using Flex/Bison:
+[% safename %]_lex_files     := [% lexyacc %]
+[% safename %]_yacc_files    := [% parseyacc %]
+[% safename %]_generated_hdr := $(addprefix $([% safename %]_objdir)/, $(addsuffix .h, $(basename $(notdir $([% safename %]_yacc_files)))))
+[% safename %]_generated_src := $(addprefix $([% safename %]_objdir)/, $(addsuffix .cc, $(basename $(notdir $([% safename %]_lex_files)))))
+[% safename %]_generated_src += $(addprefix $([% safename %]_objdir)/, $(addsuffix .cc, $(basename $(notdir $([% safename %]_yacc_files)))))
+# If there are generated source files, add the INCLUDE to CPPFLAGS:
+ifneq ($(strip $([% safename %]_generated_src)),)
+[% safename %]_CPPFLAGS  += -I$(LOCALTOP)/$(WORKINGDIR)/src
+endif
+[% safename %]_objs        += $(patsubst %.cc, %.$(OBJEXT), $([% safename %]_generated_src))
+[% safename %]_precompile += $([% safename %]_generated_src) $([% safename %]_generated_hdr)
+# Tell make not to delete the generated source files:
+.PRECIOUS: $([% safename %]_generated_src) $([% safename %]_generated_hdr)
+# Rules for Flex/Bison:
+$([% safename %]_objdir)/%lex.cc: $([% safename %]_srcdir)/%lex.l $([% safename %]_objdir)/config
+	$(call generate_lex,[% safename %],[% logname %])
+$([% safename %]_objdir)/%parse.cc $([% safename %]_objdir)/%parse.h: $([% safename %]_srcdir)/%parse.y $([% safename %]_objdir)/config
+	$(call generate_parse,[% safename %],[% logname %],[% path %])
+$([% safename %]_objdir)/%.$(OBJEXT): $([% safename %]_objdir)/%.cc $([% safename %]_objdir)/precompile
+	$(call compile_cxx,[% safename %],[% logname %])
+[% END -%]

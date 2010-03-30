@@ -1,0 +1,9 @@
+Makefile
+SCRAM_SITE.pm
+config.cache
+config.log
+config.status
+confdefs.h
+autom4te.cache
+scram.pl
+testsuite.pl

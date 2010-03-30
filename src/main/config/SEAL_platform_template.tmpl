@@ -1,0 +1,55 @@
+[%# -*- makefile -*-
+#____________________________________________________________________ 
+# Inserted from file: seal_platform_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-03-12 10:30:42+0100
+# Revision: $Id: SEAL_platform_template.tmpl,v 1.3 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE package = PluginCore %]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(package) -%]
+[% PROCESS tool_variables.tmpl -%]
+
+LIBDIR+=[% package.data("LIBDIR") %]
+INCLUDE+=[% package.data("INCLUDE") %]
+LIBS+=[% package.data("LIB") %]
+
+CONFIG_CPPFLAGS	:= $(strip $(filter -D% -I%,$(CXXFLAGS)) $(INCLUDE:%=-I%) $(CPPDEFINES:%=-D%))
+CONFIG_CC	:= $(strip $(CC))
+CONFIG_CFLAGS	:= $(strip $(CFLAGS))
+CONFIG_CXX	:= $(strip $(CXX))
+CONFIG_CXXFLAGS	:= $(strip $(filter-out -ptr% -D% -I%,$(CXXFLAGS)))
+CONFIG_LDFLAGS	:= $(LIBDIR:%=-L%)
+CONFIG_LIBS	:= $(LIBS:%=-l%)
+
+.PHONY: [% safename %]_doconfig [% safename %]_reconf
+$(WORKINGDIR)/[% path %]/config.status: $(LOCALTOP)/$(SCRAM_SOURCEDIR)/Foundation/SealPlatform/configure
+	$(LOCALTOP)/$(SCRAM_SOURCEDIR)/Foundation/SealPlatform/configure -C CPPFLAGS="$(CONFIG_CPPFLAGS)" \
+	  CC="$(CONFIG_CC)" CFLAGS="$(CONFIG_CFLAGS)" \
+	  CXX="$(CONFIG_CXX)" CXXFLAGS="$(CONFIG_CXXFLAGS)" \
+	  LDFLAGS="$(CONFIG_LDFLAGS)" LIBS="$(CONFIG_LIBS)" \
+	  --prefix=$(LOCALTOP)/$(SCRAM_ARCH)
+	@mkdir -p $(@D); mv config.* $(@D)
+
+[% safename %]_doconfig: $(WORKINGDIR)/[% path %]/config.status
+	@if [ -d $(LOCALTOP)/SealPlatform ]; then	\
+	mkdir -p $(LOCALTOP)/$(SCRAMSTORENAME_INCLUDE); mv $(LOCALTOP)/SealPlatform $(LOCALTOP)/$(SCRAMSTORENAME_INCLUDE);	\
+	fi; \
+
+[% safename %]_reconf:
+	cd $(LOCALTOP)/$(SCRAM_SOURCEDIR)/Foundation/SealPlatform &&	\
+	aclocal -I src --output=src/aclocal.m4 &&	\
+	autoconf -I src
+	rm -fr $(LOCALTOP)/$(SCRAM_SOURCEDIR)/Foundation/SealPlatform/autom4te.cache
+.PHONY: [% safepath %]_all [% safename %]_all [% safename %] [% safepath %] [% safepath %]_clean
+[% safepath %]_all [% safename %]_all: [% safename %]
+[% safename %] [% safepath %]: [% safename %]_doconfig
+[% safepath %]_clean [% safename %]_clean::
+	@echo "Cleaning config.cache and config.status:"; \
+	-rm -f $(WORKINGDIR)/[% path %]/config.*

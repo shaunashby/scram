@@ -1,0 +1,5 @@
+[% INCLUDE moc_template.tmpl -%]
+[% PROCESS plugin_template.tmpl plugin_name = core.flags("SEAL_PLUGIN_NAME") -%]
+[% INCLUDE lexyacc_template.tmpl -%]
+[% INCLUDE codegen_template.tmpl -%]
+[% INCLUDE dict_template.tmpl -%]

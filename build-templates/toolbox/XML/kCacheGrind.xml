@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+ <tool name="KCacheGrind" version="0.4.6-cmsp1">
+ <client>
+  <environment name="KCACHEGRIND_BASE"/>
+ </client>
+ <use name="qt"/>
+ <runtime name="PATH" value="$KCACHEGRIND_BASE/bin" type="path"/>
+ </tool>
+</doc>

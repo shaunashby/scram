@@ -1,0 +1,29 @@
+[%# -*- makefile -*-
+-%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% PROCESS logging_template.tmpl -%]
+[% PROCESS tool_variables.tmpl core=package -%]
+[% safepath %]_dir := $(LOCALTOP)/[% path %]
+[% safepath %]_installdir := $([% store %])
+[% safepath %]_files := $(notdir $(wildcard $(foreach dir,$([% safepath %]_dir),$(dir)/[% filter %])))
+[% safepath %]_SKIP_FILES := CVS BuildFile [% core.flags("SKIP_FILES") %]
+[% safepath %]_files := $(filter-out $([% safepath %]_SKIP_FILES), $([% safepath %]_files))
+.PHONY: [% safepath %] [% safepath %]_all
+[% safepath %]_all: [% safepath %]
+[% IF emptydir -%]
+[% safepath %]:
+	@echo "Nothing to be done for [% core.packagename() %]/[% emptydir %]:"
+[% ELSE %]
+.PHONY: [% safepath %]_clean [% safepath %]_help
+[% safepath %]:
+	@$(call clean_files,$([% safepath %]_SKIP_FILES),$([% safepath %]_installdir))
+	$(call src2store_copy,[% path %],[% logname %],$([% safepath %]_files),$([% safepath %]_installdir))
+[% safepath %]_clean:
+	$(call clean_path,$(SCRAM_INTwork)/[% path %])
+	@$(call clean_files,$([% safepath %]_SKIP_FILES),$([% safepath %]_installdir))
+	@$(call clean_files,$([% safepath %]_files),$([% safepath %]_installdir))
+[% safepath %]_help:
+	@echo "Help for building at [% path %]:"
+	@echo "It will copy all [% filter %] files from this directory to $([% safepath %]_installdir)"
+[% END %]

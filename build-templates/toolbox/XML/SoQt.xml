@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="SoQt" version="1.3.0">
+<info url="http://www.coin3d.org"/>
+<lib name="SoQt"/>
+<client>
+ <environment name="SOQT_BASE"/>
+ <environment name="LIBDIR" default="$SOQT_BASE/lib"/>
+ <environment name="INCLUDE" default="$SOQT_BASE/include"/>
+</client>
+<use name="OpenInventor"/>
+<use name="Qt"/>
+</tool>
+</doc>

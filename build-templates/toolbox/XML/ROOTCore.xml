@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="ROOTCore" version="5.14.00b-pCMS1">
+<info url="http://root.cern.ch/root/"/>
+<lib name="Cint"/>
+<lib name="Core"/>
+<lib name="Tree"/>
+<client>
+ <environment name="ROOTCORE_BASE"/>
+ <environment name="LIBDIR" default="$ROOTCORE_BASE/root/lib"/>
+ <environment name="INCLUDE" default="$ROOTCORE_BASE/root/include"/>
+ <environment name="INCLUDE" default="$ROOTCORE_BASE/root/cint"/>
+</client>
+<use name="sockets"/>
+<runtime name="PATH" value="$ROOTCORE_BASE/root/bin" type="path"/>
+<runtime name="ROOTSYS" value="$ROOTCORE_BASE/root"/>
+<runtime name="PYTHONPATH" value="$ROOTCORE_BASE/root/lib" type="path"/>
+</tool>
+</doc>

@@ -1,0 +1,32 @@
+Package: scram-v1
+Version: 1.0.1
+Revision: 14
+Source: None
+Maintainer: Giulio Eulisse <Giulio.Eulisse@cern.ch>
+Homepage: http://cmsdoc.cern.ch/Releases/SCRAM/doc/scramhomepage.html
+License: Unknown
+Description: CMS software build system
+Depends: template-notex-pm586, libwww-pm586, make
+InstallScript: <<
+#!/usr/bin/env sh
+scramver=V`echo %v | tr . _`
+scram_site="CERN"
+mkdir -p %i/lib/SCRAM
+mkdir -p %i/bin
+cp -r %b/config %i/lib/SCRAM/$scramver
+ln -sf %p/lib/SCRAM/$scramver/scram.pl %i/bin/scramv1
+<<
+CompileScript: <<
+#!/usr/bin/env sh
+scramver=V`echo %v | tr . _`
+scram_site="CERN"
+CVSROOT=":pserver:anonymous:98passwd@cmscvs.cern.ch:/cvs_server/repositories/SCRAM"
+echo $CVSROOT
+cvs -d $CVSROOT login
+cvs -d $CVSROOT co -d config -r $scramver SCRAM
+cd `pwd`/config
+mkdir src/Installation
+sed -e "s!@PERLEXE@!/usr/bin/env perl!g;s!@SCRAM_HOME@!%p/lib/SCRAM/$scramver!g;s!@INSTALLDIR@!%p/lib/SCRAM/$scramver/src!g" Installation/scram.pl.in >scram.pl
+sed -e "s!@PERLEXE@!/usr/bin/env perl!g;s!@SCRAM_HOME@!%p/lib/SCRAM/$scramver!g;s!@SCRAM_LOOKUPDB_DIR@!%p/lib/SCRAM!g;s!@SCRAM_SITENAME@!FINK!g;s!@TT2INSTALLDIR@!%p/lib/perl5/5.8.6/darwin-thread-multi-2level/Template!g;s!@SITETEMPLATEDIR@!%p/lib/SCRAM/$scramver/Templates!g" Installation/SCRAM_SITE.pm.in >Installation/SCRAM_SITE.pm
+chmod +x scram.pl
+<<

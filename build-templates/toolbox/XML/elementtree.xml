@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="elementtree" version="1.1">
+<info url="http://www.boost.org"/>
+<client>
+ <environment name="ELEMENTTREE_BASE"/>
+ <environment name="ELEMENTTREE_PYPATH" default="$ELEMENTTREE_BASE/share/lib/python2.4/site-packages"/>
+</client>
+<use name="gccxml"/>
+<use name="python"/>
+<runtime name="PYTHONPATH" value="$ELEMENTTREE_PYPATH" type="path"/>
+</tool>
+</doc>

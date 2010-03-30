@@ -1,0 +1,47 @@
+# -*- perl -*-
+#--------------------------------------------------------------------
+package SCRAM::Plugins::[% name %];
+use vars qw( @ISA );
+use base qw(Template::Plugin);
+use Template::Plugin;
+use BuildSystem::Template::Plugins::PluginCore;
+use Exporter;
+
+@ISA=qw(Exporter BuildSystem::Template::Plugins::PluginCore);
+
+#### DO NOT REMOVE THE METHODS BELOW ####
+sub load()
+   {
+   my ($class, $context) = @_;
+   return $class;
+   }
+
+sub new()
+   {
+   my $proto=shift;
+   my $class=ref($proto) || $proto;
+   my $self =
+      {
+      _CONTEXT => shift
+      };
+   
+   bless $self,$class;
+
+   # Store data:
+   $self->{_BRANCH} = $self->{_CONTEXT}->stash()->get('branch');
+   $self->{_META} = $self->{_BRANCH}->branchdata();
+   # Set the most commonly-used features:
+   $self->{_CONTEXT}->stash()->set('safepath', $self->{_BRANCH}->safepath());
+   $self->{_CONTEXT}->stash()->set('path', $self->{_BRANCH}->path());
+   $self->{_CONTEXT}->stash()->set('suffix', $self->{_BRANCH}->suffix());
+   $self->{_CONTEXT}->stash()->set('class', $self->{_BRANCH}->class());
+   $self->{_CONTEXT}->stash()->set('classdir', $self->{_BRANCH}->classdir());
+
+   print "Using PRIVATE [% name %] module","\n", if ($ENV{SCRAM_DEBUG});
+   
+   return $self;
+   }
+
+#### Add your own methods here ####
+
+1;

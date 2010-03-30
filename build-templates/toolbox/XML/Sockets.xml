@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="Sockets" version="1.0">
+<architecture name="rh73_gcc323">
+ <lib name="nsl"/>
+ <lib name="crypt"/>
+ <lib name="dl"/>
+</architecture>
+<architecture name="slc3_ia32_gcc323">
+ <lib name="nsl"/>
+ <lib name="crypt"/>
+ <lib name="dl"/>
+</architecture>
+<architecture name="osx103_gcc33">
+ <lib name="dl"/>
+</architecture>
+</tool>
+</doc>

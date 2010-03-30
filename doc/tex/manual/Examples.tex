@@ -1,0 +1,313 @@
+%%____________________________________________________________________ 
+%% File: Examples.tex
+%%____________________________________________________________________ 
+%%  
+%% Author: Shaun ASHBY <Shaun.Ashby@cern.ch>
+%% Update: 2005-11-02 17:08:52+0100
+%% Revision: $Id: Examples.tex,v 1.5.2.1 2007/03/02 13:54:00 sashby Exp $ 
+%%
+%% Copyright: 2005 (C) Shaun ASHBY
+%%
+%%--------------------------------------------------------------------
+\chapter{Examples}\label{ch:examples}
+
+This chapter contains some useful examples of how to work with \scram.
+
+\section{Configuring New Projects}\label{sec:configuringprojectexample}
+
+This section covers how to create a new project using the boot
+mechanism. Normally, a boot file will instruct \scram\ to download
+configuration documents from a \texttt{CVS} repository. However,
+sometimes this may not be possible because the appropriately
+configured files may not yet be available in a repository or it is
+more desirable to make a prototype locally before committing anything.
+
+\subsection{Creating Standalone Projects}\label{sec:configuringstandaloneprojects}
+
+First we will describe how to boot a project from copies of
+configuration files based on the templates provided by
+\scram. These templates can be obtained using \texttt{scram project -t}.
+The \texttt{config} directory created locally contains build
+templates and a global \buildfile, plus the boot and requirements
+files. The boot file looks like this:
+\small{
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="Configuration::BootStrapProject" version="1.0">
+ <project name="TEST" version="1_0">
+  <base url="file:SCRAMToolBox">
+   <download url="file:/CMSconfigs" name="config/site"/>
+  </base>
+ 
+   Boot file for TEST project version 1.0.
+
+  <config dir="config"/>
+  <base url="file:config">
+   <download url="file:/" name="config"/>
+    <requirementsdoc name="config/requirements.xml"/>
+  </base>
+ </project>
+</doc>
+\end{verbatim}}\normalsize
+
+\ni and the requirements document looks like this:
+\small{
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::Requirements" version="2.0">
+ <base url="file:SCRAMToolBox">
+  <include url="file:/CMS/Configuration/CMSconfiguration.xml"/>
+  <select name="cxxcompiler"/>
+ </base>
+</doc>
+\end{verbatim}}\normalsize
+
+\ni These must now be edited to suit. Here is a recipe:
+
+\begin{description}
+\item[Decide on a project name and version:]\mbox{}\\
+Edit the boot file, changing the name and version of the project as
+desired. In the example, the project name is \texttt{TEST} and the
+version is $1.0$.
+\item[Configure a toolbox with required tools:]\mbox{}\\
+In this example, we configure a completely standalone toolbox as a
+directory structure containing the tool descriptions needed for the
+project dependencies. There are no references to \texttt{cvs:\\} type
+URLS and therefore no interaction with a CVS repository.
+This allows for a very fast setup process since files are
+"downloaded" from a local disk.
+\end{description}
+
+\ni Now we follow a second example in which a toolbox configuration
+already exists, as prepared by the software librarian, with a
+published CVS tag. The boot file looks like this:
+\small{
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="Configuration::BootStrapProject" version="1.0">
+ <project name="TEST" version="1_0">
+  <base url="cvs://cmscvs.cern.ch/cvs_server/repositories/SCRAMToolBox
+          ?auth=pserver&amp;user=anonymous&amp;passkey=AA_:yZZ3e&amp;version=CMS_145a_2">
+   <download url="cvs:?module=SCRAMToolBox/CMSconfigs" name="config/site"/>
+  </base>
+
+  <config dir="config"/>
+  <base url="file:config">
+   <download url="file:/" name="config"/>
+   <requirementsdoc name="config/requirements.xml"/>
+  </base>
+ </project>
+</doc>
+\end{verbatim}}\normalsize
+
+\ni and the requirements document looks like this:
+\small{
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::Requirements" version="2.0">
+ <base url="cvs://cmscvs.cern.ch/cvs_server/repositories/SCRAMToolBox
+          ?auth=pserver&amp;user=anonymous&amp;passkey=AA_:yZZ3e&amp;version=CMS_145a_2">
+  <include url="cvs:?module=SCRAMToolBox/CMS/Configuration/CMSconfiguration.xml"/>
+  <select name="cxxcompiler"/>
+ </base>
+</doc>
+\end{verbatim}}\normalsize
+
+\ni The toolbox has the CVS tag \texttt{CMS\_145a\_2} which is
+formatted according to local conventions but can be any valid
+(existing) tag. When the project is booted, the toolbox will be
+checked out from CVS but the project configuration will be taken from
+a local \texttt{config} directory and copied to the final project area.
+
+
+\section{BuildSystem and Configuration Tips And Tricks}
+
+Examples of useful tips? For configuration, could mention changes to \texttt{Self}.
+
+\paragraph{Redefining An Existing Tool}
+
+Currently it is not possible to have multiple versions of the same
+tool. Therefore, this recipe should be followed if an installed tool
+should be modified, for example to redefine the libraries used or to
+add an extra runtime variable definition.
+
+\begin{itemize}
+\item Create a new template using \scram, or copy the installed version
+  from \texttt{.SCRAM/architecture/InstalledTools}. If you cannot see
+the \texttt{InstalledTools} directory (which sometimes happens for
+%% FIXME>> Should this be ``scram set'' or will ``scram setup <tool>'' work?
+developer areas), type \texttt{scram setup} or copy the tool description file
+from the release area for the version of the project you're using to
+the project area.
+
+\item Edit this version of the tool file.
+
+\item Delete the installed version by running \texttt{scram tool remove <tool>}.
+
+\item Set up the new version of the tool, giving a \texttt{file:} URL to
+  point to your new tool description file.
+\end{itemize}
+
+\paragraph{Creating an executable}
+
+How to create a binary executable. Define real binaries in a
+\texttt{bin} directory in the package.
+
+\paragraph{Creating a test executable}
+
+How to create a test binary executable? Binaries defined in
+\texttt{test} subdirectories are automatically treated as test executables
+A different template for tests (relative to normal binaries) defines custom behaviour, in this
+case to move the product to a \texttt{test} storage location and defining rules for executing the test. 
+
+\paragraph{Changing the default name of a package library}
+
+The CMSSW example. Demonstrate how to change the name of the target,
+taking the path information from the standard template for the library.
+
+\paragraph{Creating an extra shared library}
+
+How to use the \texttt{extra\_library\_template.tmpl} template. Types of globs
+to pick up source files from a stubs directory, for example.
+
+\paragraph{How to create a debug version of something}
+
+Adding $<$flags \texttt{CXXFLAGS}=\texttt{"-g -O0"}$/>$ to the top-level
+\buildfile\ will add the debug flags to the global compiler
+flags. Alternatively, adding the statement to a package \buildfile\
+will produce debug symbold in that package only (likewise for
+executables and modules defined in \texttt{bin} or \texttt{test} directories.
+
+\subsection{How To Avoid Rebuilding}
+
+Create a private "release" area from which to create
+a developer area. Use your own project database by setting
+\texttt{SCRAM\_USERLOOKUPDB} to a local directory in which a
+\texttt{project.lookup} is added. 
+To install the project on which a release will be based, change to the
+project area and type \texttt{scram install}. The project should now
+appear in the list of projects returned by \texttt{scram list}.
+
+\ni A developer area can be created using \texttt{scram project NAME
+  VERSION}, where the \texttt{NAME} and \texttt{VERSION} match those
+in the list of projects.
+
+\example{Defining a New Classpath}
+
+Following the recommended project structure conventions, here is an
+example of \lbkt\texttt{classpath}\rbkt settings for a project, as
+defined in the top-level project \buildfile:
+\index{\texttt{classpath} tag!example}
+
+\small{
+\begin{verbatim} 
+ <classpath path="+Project/+SubSystem/+Package/scripts+scripts"/>
+ <classpath path="+Project/Documentation+Documentation/+doc"/>
+ <classpath path="+Project/+SubSystem/+Package/src+library"/>
+ <classpath path="+Project/+SubSystem/+Package/bin+binary"/>
+ <classpath path="+Project/+SubSystem/+Package/test+test"/>
+ <classpath path="+Project/+SubSystem/+Package/data+data_install"/>
+\end{verbatim}}\normalsize
+
+\index{structure templates! and the \texttt{classpath}}
+\ni These settings will associate the top-level \texttt{src}
+directory with \texttt{Project\_template.tmpl} and any directory in the next
+level with the template \texttt{SubSystem\_template.tmpl}. 
+The level below that will be associated with \texttt{Package\_template.tmpl}.
+The last elements have a pattern-matching string before the \texttt{+}
+sign: only directories matching the names \texttt{src},
+\texttt{test} and \texttt{bin} at the third level below
+the top-level \texttt{src} directory will be mapped to the
+templates \texttt{library\_template.tmpl},
+\texttt{test\_template.tmpl} and
+\texttt{binary\_template.tmpl} respectively.  Thus, any
+source files in a directory \texttt{src} at package-level will
+source the template \texttt{library\_template.tmpl} for build
+rules to build a library. Likewise, binary executables will be
+built from sources located in any directory called
+\texttt{bin} using a template \texttt{binary\_template.tmpl}.
+
+\example{An Example Productstore Definition} 
+To create separate \texttt{include},\texttt{bin} and \texttt{lib} subdirectories, all of which are 
+architecture-dependent, the following tags would be added to the project \buildfile:
+\index{\texttt{productstore} tag!example}
+
+\small{
+\begin{verbatim} 
+ <productstore name="include" type="arch"/>
+ <productstore name="lib" type="arch"/>
+ <productstore name="bin" type="arch"/>
+ <productstore name="module" type="arch" swap="t"/>
+\end{verbatim}}\normalsize
+
+\ni In the above example, the storage location for modules is architecture-dependent and is
+created as \texttt{module/slc3\_ia32\_gcc323} on a system with a \scram\
+architecture \texttt{slc3\_ia32\_gcc323}. The other directories
+(\texttt{bin}, \texttt{lib} and \texttt{include}) are created under a
+directory \texttt{slc3\_ia32\_gcc323} in the project area.
+
+\ni To store all products on a local disk in a directory independent
+of the project area, use the \texttt{path} option when defining the
+product store. Suppose the local directory is called
+\texttt{/localscrath/u/user}- in this case, the definition for the
+product stores would look like this:
+
+\small{
+\begin{verbatim} 
+ <productstore name="include" type="arch" path="/localscratch/u/user"/>
+ <productstore name="lib" type="arch" path="/localscratch/u/user"/>
+ <productstore name="bin" type="arch" path="/localscratch/u/user"/>
+ <productstore name="module" type="arch" swap="t" path="/localscratch/u/user"/>
+\end{verbatim}}\normalsize
+
+\ni The storage directories inside the project area will be links to
+the locations under \texttt{/localscratch/u/user}.
+
+\example{Example Binary BuildFile}
+Here is an example of a \buildfile\ to build two binary executables,
+\texttt{mySimReaderExe} and \texttt{testObserver}:
+
+\small{
+\begin{verbatim}
+<use name="Sim/Reader"/>
+<bin file="testSimReader.cpp" name="mySimReaderExe"/>
+<bin file="testObserver.cpp"/>
+\end{verbatim}}\normalsize
+
+\ni The object files for both binaries are linked against the
+library provided by the package \texttt{Sim/Reader} to produce the executables.
+
+\example{Example Plugin BuildFile} This example will build
+a shared library which is to be used as a managed plugin:
+
+\small{
+\begin{verbatim}
+<library file="SimpleUtilitiesModule.cpp" name="SimpleUtilPlugin">
+ <use name="Base/Utilities"/>
+ <Flags SEAL_PLUGIN_NAME="SimpleUtilPlugin"/>
+</library>
+\end{verbatim}}\normalsize
+
+Another example includes more than one source file in the plugin
+library:
+
+\small{
+\begin{verbatim}
+<library file="*.cc,BaseUtilitiesModule.cpp" name="BaseUtilPlugin">
+ <use name="Base/Utilities"/>
+ <Flags SEAL_PLUGIN_NAME="BaseUtilPlugin"/>
+</library>
+\end{verbatim}}\normalsize
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "SCRAM-manual"
+%%% End: 
+
+%%____________________________________________________________________ 
+%% End of Examples.tex
+%%____________________________________________________________________ 
+%%  

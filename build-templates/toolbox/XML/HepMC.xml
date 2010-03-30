@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="HepMC" version="1.27.02">
+<lib name="HepMCfio"/>
+<lib name="HepMC"/>
+<client>
+ <environment name="HEPMC_BASE"/>
+ <environment name="LIBDIR" default="$HEPMC_BASE/lib"/>
+ <environment name="INCLUDE" default="$HEPMC_BASE/include"/>
+</client>
+<use name="CLHEP"/>
+</tool>
+</doc>

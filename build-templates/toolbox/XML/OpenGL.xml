@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.1">
+<tool name="OpenGL" version="XFree4.2">
+<use name="X11"/>
+<lib name="GL"/>
+<lib name="GLU"/>
+<architecture name="osx103_gcc33">
+ <environment name="OPENGL_BASE" default="/System/Library/Frameworks/OpenGL.framework/Versions/A"/>
+ <environment name="INCLUDE" default="$OPENGL_BASE/Headers"/>
+ <environment name="LIBDIR" default="$OPENGL_BASE/Libraries"/>
+</architecture>
+</tool>
+</doc>

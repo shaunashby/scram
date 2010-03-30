@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="OTL" version="4.0.67">
+<client> 
+ <environment name="OTL_BASE"/> 
+ <environment name="INCLUDE" default="$OTL_BASE"/>
+</client>
+</tool>
+</doc>

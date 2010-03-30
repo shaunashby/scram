@@ -1,0 +1,71 @@
+[%# -*-makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: python_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-05-06 17:33:25+0200
+# Revision: $Id: python_template.tmpl,v 1.11 2007/02/27 11:54:48 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE core = PluginCore -%]
+[% IF suffix -%][% RETURN -%][% END -%]
+[% USE common = CustomPlugin(core) -%]
+[% PROCESS logging_template.tmpl -%]
+.PHONY: [% safepath %] [% safepath %]_all [% safepath %]_help [% safepath %]_clean
+.PHONY: [% safename %] [% safename %]_all [% safename %]_clean
+[% safepath %]_clean: [% safename %]_clean
+[% safepath %] [% safepath %]_all: [% safename %]_all
+[% safepath %]_help:
+	@echo "Help for building python modules at [% path %]"
+[% safename %]_objdir       := $(WORKINGDIR)/[% path %]/[% safename %]
+[% safename %]_clean::
+	$(call clean_path,$([% safename %]_objdir))
+[% PROCESS buildfile_check.tmpl packremoveonly=1 -%]
+[% safename %]_srcdir       := $(LOCALTOP)/[% path %]
+[% safename %]_files        := $(notdir $(wildcard $(foreach dir,$([% safename %]_srcdir),$(foreach ext,$(CXXSRC_FILES_SUFFIXES),$(dir)/*.$(ext)))))
+[% safename %]_files        += $(patsubst %.pyste,%_boost.cc,$(notdir $(wildcard $([% safename %]_srcdir)/*.pyste)))
+[% IF common.hasPythonscripts() -%]
+[% safename %]_python_dir := $(addprefix $(SCRAMSTORENAME_PYTHON)/, $(patsubst src/%/python, %, [% path %]))
+[% safename %]_copy_python_scripts: [% logfile %]
+	$(call python_script_copy,[% safename %],[% logname %])
+[% safename %]_clean::
+	$(call clean_path,$([% safename %]_python_dir))
+[% safename %]_all += [% safename %]_copy_python_scripts
+[% ELSE -%]
+[% safename %]_copy_python_scripts:
+	@echo "No source files to compile. Nothing to be done for Python modules at [% path %]."
+[% END -%]
+ifneq ($(strip $([% safename %]_files)),)
+[% safename %]_files += $([% safename %]_objdir)/[% safename %]_PyWrapper.cc
+[% INCLUDE buildfile_check.tmpl packremoveonly=1 -%]
+[% FOREACH flag = [ "CXXFLAGS" "CFLAGS" "FFLAGS" "CPPDEFINES" "LDFLAGS" ] -%]
+[% safename %]_[% flag %]   := $([% flag %]) [% core.flags(flag) %]
+[% END -%]
+[% safename %]_CXXFLAGS := $(filter-out -pedantic-errors -ansi, $([% safename %]_CXXFLAGS))
+[% FOREACH data = [ "INCLUDE" "LIB" "LIBDIR" ] -%]
+[% safename %]_[% data %]   := $([% data %]) [% core.data(data) %]
+[% END -%]
+[% safename %]_LIBDIR       := $(LIBDIR)  $(filter-out $(LIBDIR),$(filter $(LOCALTOP)/%,[% core.data("LIBDIR") %]))
+[% safename %]_LDLIBS       += $(addprefix -l,$([% safename %]_LIB))
+[% safename %]_ALL_INCLUDES += $(addprefix -I,$([% safename %]_INCLUDE))
+[% safename %]_CPPFLAGS     += $(addprefix -D,$([% safename %]_CPPDEFINES)) $([% safename %]_ALL_INCLUDES) 
+[% safename %]_LDFLAGS      += $(addprefix -L,$([% safename %]_LIBDIR)) $([% safename %]_LDLIBS)
+[% safename %]_objs          := $(addprefix $([% safename %]_objdir)/, $(addsuffix .o, $(basename $(notdir $([% safename %]_files)))))
+[% safename %]_deps          := $(addprefix $(WORKINGDIR)/cache/prod/, $([% safename %]_LIB))
+[% safename %]_libdeps      := $(addprefix $(WORKINGDIR)/cache/prod/lib, $([% safename %]_LIB))
+[% safename %]_classnames    := $(patsubst %_boost,%,$(filter %_boost,$(basename $(notdir $([% safename %]_files)))))
+[% safename %]_CXXSharedLink := -rdynamic $([% safename %]_LDFLAGS)
+[% safename %]_BuildFile  := [% common.getLocalBuildFile() %]
+ifneq ($(strip $([% safename %]_BuildFile)),)
+[% safename %]_CONFIGDEPS += $(CONFIGDEPS) $(WORKINGDIR)/cache/bf/[% safename %]
+endif
+[% INCLUDE buildfile_check.tmpl packremoveonly=0 -%]
+[% INCLUDE gcc_compile_rules.tmpl type="python" -%]
+else
+[% safename %] [% safename %]_all: [% safename %]_copy_python_scripts
+	@:
+endif

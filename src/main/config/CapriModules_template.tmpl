@@ -1,0 +1,32 @@
+[%# -*-makefile-*-
+# Inserted from file: CapriModules_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-09-13 12:16:28+0200
+# Revision: $Id: CapriModules_template.tmpl,v 1.2 2004/12/10 13:41:44 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+# Register COBRA modules:
+.PHONY: [% mod_name %]_reg [% mod_safename %]_pluglist_add
+
+CAPRIPLUGINPY:=$(LOCALTOP)/$(SCRAM_SOURCEDIR)/CARF/domain/scripts/capriplugin.py
+CAPRIPLUGINSFILE:=$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)/capri.plugins
+
+[% mod_name %]_reg: $(WORKINGDIR)/[% path %]/[% mod_safename %]/[% mod_name %].reg [% mod_safename %]_pluglist_add
+	@echo ">> CAPRI_REG: Registering COBRA module [% mod_name %]"
+
+$(WORKINGDIR)/[% path %]/[% mod_safename %]/%.reg: $(WORKINGDIR)/[% path %]/[% mod_safename %]/$(MODULE_PREFIX)[% mod_name %]$(MODULE_SUFFIX)
+	@touch $@
+	@$(CAPRIPLUGINPY) $@  $* > /dev/null
+
+[% mod_safename %]_pluglist_add: $(CAPRIPLUGINSFILE)
+	@cat $(WORKINGDIR)/[% path %]/[% mod_safename %]/[% mod_name %].reg >> $(CAPRIPLUGINSFILE)
+
+$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)/capri.plugins::
+	@if [ ! -f $@ ]; then \
+	 echo ">> Creating file $@"; touch $@; \
+	fi

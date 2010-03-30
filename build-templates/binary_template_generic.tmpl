@@ -1,0 +1,101 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: binary_template_generic.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-04-21 17:12:26+0200
+# Revision: $Id: binary_template_generic.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% bin_files = core.productfiles() -%]
+[% bin_name = core.productname() -%]
+[% core.data("MAKEFILE") %] 
+# Compiler flags for this binary env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+[% safepath %]_[% bin_safename %]_CXXFLAGS   := $(CXXFLAGS) [% core.flags("CXXFLAGS") %] 
+[% safepath %]_[% bin_safename %]_CCFLAGS    := $(CCFLAGS) [% core.flags("CCFLAGS") %] 
+[% safepath %]_[% bin_safename %]_FFLAGS     := $(FFLAGS) [% core.flags("FFLAGS") %] 
+[% safepath %]_[% bin_safename %]_CPPDEFINES := $(CPPDEFINES) [% core.flags("CPPDEFINES") %]
+[% safepath %]_[% bin_safename %]_INCLUDE:=$(INCLUDE) [% core.data("INCLUDE") %]
+[% safepath %]_[% bin_safename %]_LIB:=[% core.data("LIB") %]
+[% safepath %]_[% bin_safename %]_LIBDIR:=$(LIBDIR) [% core.data("LIBDIR") %]
+[% safepath %]_[% bin_safename %]_LDLIBS:=$(addprefix -l,$([% safepath %]_[% bin_safename %]_LIB))
+[% safepath %]_[% bin_safename %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_[% bin_safename %]_INCLUDE))
+[% safepath %]_[% bin_safename %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_[% bin_safename %]_CPPDEFINES)) $([% safepath %]_[% bin_safename %]_ALL_INCLUDES)
+[% safepath %]_[% bin_safename %]_LDFLAGS+= $(LDFLAGS) [% core.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_[% bin_safename %]_LIBDIR)) $([% safepath %]_[% bin_safename %]_LDLIBS)
+[% safepath %]_[% bin_safename %]_objdir := $(WORKINGDIR)/[% path %]/[% bin_safename %]
+[% safepath %]_[% bin_safename %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_[% bin_safename %]_deps := [% core.pkdeps() %]
+[% safepath %]_[% bin_safename %]_filesrcdirs = $([% safepath %]_[% bin_safename %]_srcdir)
+[% safepath %]_[% bin_safename %]_files += [% bin_files %]
+[% safepath %]_[% bin_safename %]_objs := $(addprefix $([% safepath %]_[% bin_safename %]_objdir)/, $(addsuffix .$(OBJEXT), $(basename $([% safepath %]_[% bin_safename %]_files))))
+
+all_binaries += [% safepath %]_[% bin_safename %]_all
+all_binaries_clean += [% bin_safename %]_clean
+all_binaries_help += [% bin_safename %]_help
+
+all_[% safepath %]_binaries += [% safepath %]_[% bin_safename %]_all
+all_[% safepath %]_binaries_clean += [% bin_safename %]_clean
+all_[% safepath %]_binaries_help += [% bin_safename %]_help
+
+# Configuration dependencies. Always depend on BuildFile in current directory:
+[% safepath %]_[% bin_safename %]_BuildFile+=[% path %]/BuildFile
+[% safepath %]_[% bin_safename %]_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath %]_[% bin_safename %]_BuildFile)
+
+# Protect against no files scenario:
+ifneq ($(strip $([% safepath %]_[% bin_safename %]_files)),)
+.PHONY : binary_generic [% safepath %]_[% bin_safename %]_all [% safepath %]_[% bin_safename %] [% bin_name %] [% bin_safename %]_clean [% bin_safename %]_help
+binary_generic [% safepath %]_[% bin_safename %]_all: [% safepath %]_[% bin_safename %]
+[% safepath %]_[% bin_safename %]: $([% safepath %]_[% bin_safename %]_deps) [% safepath %]_[% bin_safename %]_bin
+
+# Rule for binary build (a shortcut or something more easily typed):
+[% bin_name %]: [% safepath %]_[% bin_safename %]
+
+# Binary rule:
+[% safepath %]_[% bin_safename %]_bin: $(WORKINGDIR)/[% path %]/[% bin_safename %]/[% bin_name %]
+$(WORKINGDIR)/[% path %]/[% bin_safename %]/[% bin_name %]: $([% safepath %]_[% bin_safename %]_objs)
+	@echo ">> Building binary [% bin_name %]"
+	$(VERB)$(CXX) $([% safepath %]_[% bin_safename %]_CXXFLAGS) $([% safepath %]_[% bin_safename %]_LDFLAGS) $(CXXSHAREDOBJECTFLAGS) $([% safepath %]_[% bin_safename %]_objs) -o $@
+	$(VERB)$(copy_bin_to_main_productstore)
+
+[% bin_safename %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% bin_safename %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% bin_safename %]
+
+[% bin_safename %]_help::
+	@echo "Help for building binaries at [% path %]:"
+	@echo "(BIN NAME = [% bin_name %], SOURCES = [% bin_files %])" 
+	@echo ""
+
+$([% safepath %]_[% bin_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% bin_safename %]_srcdir)/%.cc $([% safepath %]_[% bin_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% bin_safename %]_CPPFLAGS) $([% safepath %]_[% bin_safename %]_CXXFLAGS) $([% safepath %]_[% bin_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% bin_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% bin_safename %]_srcdir)/%.cpp $([% safepath %]_[% bin_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% bin_safename %]_CPPFLAGS) $([% safepath %]_[% bin_safename %]_CXXFLAGS) $([% safepath %]_[% bin_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% bin_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% bin_safename %]_srcdir)/%.cxx $([% safepath %]_[% bin_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% bin_safename %]_CPPFLAGS) $([% safepath %]_[% bin_safename %]_CXXFLAGS) $([% safepath %]_[% bin_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_[% bin_safename %]_objdir)/%.$(OBJEXT): $([% safepath %]_[% bin_safename %]_srcdir)/%.C $([% safepath %]_[% bin_safename %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD -c $([% safepath %]_[% bin_safename %]_CPPFLAGS) $([% safepath %]_[% bin_safename %]_CXXFLAGS) $([% safepath %]_[% bin_safename %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_[% bin_safename %]_objs:.$(OBJEXT)=.d),$d)
+else
+binary_generic [% safepath %]_[% bin_safename %]_all: [% safepath %]_[% bin_safename %]
+[% safepath %]_[% bin_safename %]:
+	@echo "No source files to compile. Nothing to be done for binaries at [% path %]."
+endif

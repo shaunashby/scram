@@ -1,0 +1,29 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: Domain_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-02-11 15:22:37+0100
+# Revision: $Id: SubSystem_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE domain = PluginCore -%]
+# Domain name is [% domain.name() %]:
+[% safepath %]_subdirs+=[% domain.safesubdirs() %]
+all_domains+=[% domain.name() %]
+.PHONY: [% safepath %]_all [% safepath %]
+
+[% safepath %]_all: [% safepath %] 
+[% domain.name() %] [% safepath %]: $([% safepath %]_subdirs)
+	@echo ">> Domain [% domain.name() %] built"
+
+[% domain.name() %]_clean [% safepath %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[% safepath %]_help::
+	@echo "Help for building at [% path %]:"

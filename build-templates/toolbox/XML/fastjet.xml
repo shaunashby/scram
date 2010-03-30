@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+ <tool name="FastJet" version="2.1.0b1">
+  <info url="http://www.lpthe.jussieu.fr/~salam/fastjet"/>
+  <lib name="fastjet"/>
+  <client>
+   <environment name="FASTJET_BASE"/>
+   <environment name="LIBDIR" default="$FASTJET_BASE/lib"/>
+   <environment name="INCLUDE" default="$FASTJET_BASE/include"/>
+  </client>
+ </tool>
+</doc>

@@ -1,0 +1,68 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# File: Inserted from file: appliction_template_generic.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-05-04 15:19:41+0200
+# Revision: $Id: application_template_generic.tmpl,v 1.7 2005/05/13 15:48:30 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% app_files = core.productfiles() -%]
+[% app_name = core.productname() -%]
+[%# We use this application template to register a module in the way required
+# by the SEAL pluginmanager. Info needed (e.g. name to register) is obtained
+# from <application> tags in the BuildFile where the SEAL plugin is built
+%]
+APPMESSAGE:="Registering SEAL plugin"
+[% core.data("MAKEFILE") %] 
+SEAL_PLUGIN_DIR:=$(LOCALTOP)/$(SCRAMSTORENAME_MODULE)
+INPUT_PLUGIN_NAME:=[% app_name %]
+
+ifdef INPUT_PLUGIN_NAME
+SEAL_PLUGIN_NAME:=$(patsubst Register%,%,$(INPUT_PLUGIN_NAME))
+
+all_applications += [% safepath %]_[% app_safename %]_all
+all_application_clean += [% app_safename %]_clean
+all_application_help += [% app_safename %]_help
+
+all_[% safepath %]_applications += [% safepath %]_[% app_safename %]_all
+all_[% safepath %]_applications_clean += [% app_safename %]_clean
+all_[% safepath %]_applications_help += [% app_safename %]_help
+
+.PHONY : application_generic [% safepath %]_[% app_safename %]_all [% safepath %]_[% app_safename %] [% app_name %] [% app_safename %]_clean [% app_safename %]_help
+application_generic [% safepath %]_[% app_safename %]_all: [% safepath %]_[% app_safename %]
+[% safepath %]_[% app_safename %]: [% safepath %]_[% app_safename %]_app
+
+# Rule for application build (a shortcut or something more easily typed):
+[% app_name %]: [% safepath %]_[% app_safename %]
+
+# Application rule:
+[% safepath %]_[% app_safename %]_app: $(WORKINGDIR)/[% path %]/[% app_safename %]/[% app_name %]
+
+$(WORKINGDIR)/[% path %]/[% app_safename %]/[% app_name %]: $(SEAL_PLUGIN_DIR)/$(SEAL_PLUGIN_NAME).reg
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@touch $(@D)/$(SEAL_PLUGIN_NAME).reg
+	@echo ">> $(APPMESSAGE) $(SEAL_PLUGIN_NAME)"
+
+$(SEAL_PLUGIN_DIR)/%.reg:
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	@echo 'module $(patsubst %.reg,lib%.so,$(@F))' > $@
+
+[% app_safename %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% app_safename %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]/[% app_safename %]
+	@echo ">> Unregistering module $(SEAL_PLUGIN_NAME):"
+	@/bin/rm -rf $(SEAL_PLUGIN_DIR)/$(SEAL_PLUGIN_NAME).reg
+
+[% app_safename %]_help::
+	@echo "Building at [% path %] will register module $(SEAL_PLUGIN_NAME)."
+else
+application_generic [% safepath %]_[% app_safename %]_all: [% safepath %]_[% app_safename %]
+[% safepath %]_[% app_safename %]:
+	@:
+endif
+

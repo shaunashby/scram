@@ -1,0 +1,13 @@
+# -*- toolbox -*-
+<doc type=Configuration::BootStrapProject version=1.0>
+<project name=SCRAM_PARSER version=1.0>
+<base url="file:SCRAMToolBox">
+<download url="file:/CMSconfigs" name=config/site>
+</base>
+
+<Config dir=config>
+<base url="file:config">
+<download url="file:/" name="config">
+<RequirementsDoc name=config/requirements.standalone>
+</base>
+</project>

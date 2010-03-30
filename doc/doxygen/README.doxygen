@@ -1,0 +1,14 @@
+Building Doxygen HTML Pages
+===========================
+
+Change directory to "doc/doxygen".
+
+- Make sure that you have AT&T DOT somewhere at you site: edit
+  "doxygen.sh" so that LD_LIBRARY_PATH and PATH have paths to your DOT
+  install area.
+
+- Make sure that you are able to run Doxygen v1.41 at least and modify
+  the DOXYGEN variable accordingly.
+
+- Run doxygen.sh. Documentation will be added under doc/doxygen/html.
+

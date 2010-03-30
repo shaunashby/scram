@@ -1,0 +1,132 @@
+[%# -*-makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: python_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shaun Ashby <Shaun.Ashby@cern.ch>
+# Update: 2004-05-06 17:33:25+0200
+# Revision: $Id: python_template.tmpl,v 1.1 2005/05/20 16:28:23 sashby Exp $ 
+#
+# Copyright: 2004 (C) Shaun Ashby
+#
+#--------------------------------------------------------------------
+%]
+[% USE pymodule = PluginCore -%]
+[% variables = pymodule.variables() -%]
+[% FOREACH variable IN variables -%]
+[% variable.key %]:=[% variable.value %]
+[% END %]
+# Dump out any data from MAKEFILE tags:
+[% pymodule.data("MAKEFILE") %]
+# Compiler flags for this build env. Collect all the flags that are defined. Also collect 
+# from highest level (global defs are made in config/BuildFile so any tools <use>d here 
+# will have their flags propagated everywhere):
+# Firstly, remove -ansi and -pedantic flags which seem to make Boost unhappy:
+[% safepath %]_CXXFLAGS := $(filter-out -pedantic-errors -ansi,$(CXXFLAGS)) [% pymodule.flags("CXXFLAGS") %]
+[% safepath %]_CCFLAGS    := $(CCFLAGS) [% pymodule.flags("CCFLAGS") %] 
+[% safepath %]_FFLAGS     := $(FFLAGS) [% pymodule.flags("FFLAGS") %] 
+[% safepath %]_CPPDEFINES := $(CPPDEFINES) [% pymodule.flags("CPPDEFINES") %] 
+[% safepath %]_INCLUDE:= $(INCLUDE) [% pymodule.data("INCLUDE") %]
+[% safepath %]_LIB:=[% pymodule.data("LIB") %]
+[% safepath %]_LIBDIR:=$(LIBDIR) [% pymodule.data("LIBDIR") %]
+[% safepath %]_LDLIBS:=$(addprefix -l,$([% safepath %]_LIB))
+[% safepath %]_ALL_INCLUDES:=$(addprefix -I,$([% safepath %]_INCLUDE))
+[% safepath %]_CPPFLAGS:=$(addprefix -D,$([% safepath %]_CPPDEFINES)) $([% safepath %]_ALL_INCLUDES)
+[% safepath %]_LDFLAGS:= $(LD_FLAGS) [% pymodule.flags("LDFLAGS") %] $(addprefix -L,$([% safepath %]_LIBDIR)) $([% safepath %]_LDLIBS)
+[%# This builds a python module out of all the *_boost.cc files found:
+%]
+[% safepath %]_objdir := $(WORKINGDIR)/[% path %]
+[% safepath %]_srcdir := $(LOCALTOP)/[% path %]
+[% safepath %]_deps := [% pymodule.pkdeps() %]
+[% safepath %]_filesuffixes:= cc cpp cxx C
+[% safepath %]_filesrcdirs = $([% safepath %]_srcdir)
+[% safepath %]_files += $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_filesuffixes),$(dir)/*.$(ext)))))
+
+# Add all _boost.cc and pyste files (which are translated to _boost.cc) found:
+[% safepath %]_files += $(patsubst %.pyste,%_boost.cc,$(notdir $(wildcard $(LOCALTOP)/[% path %]/*.pyste)))
+[% safepath %]_classnames := $(patsubst %_boost,%,$(filter %_boost,$(basename $(notdir $([% safepath %]_files)))))
+[% safepath %]_pyname := Py[% pymodule.name() %]
+[% safepath %]_CXXSharedLink += -rdynamic $([% safepath %]_LDFLAGS)
+
+# Configuration dependencies. Always depend on BuildFile in current directory:
+[% safepath %]_py_BuildFile+=[% path %]/BuildFile
+[% safepath %]_py_CONFIGDEPS+= $(CONFIGDEPS) $([% safepath %]_py_BuildFile)
+
+# Rules for Python modules:
+ifneq ($(strip $([% safepath %]_files)),)
+# Only add a wrapper file if there are other files:
+[% safepath %]_files += $([% safepath %]_objdir)/[% safepath %]_PyWrapper.cc
+# The object files:
+[% safepath %]_objs := $(addprefix $([% safepath %]_objdir)/, $(addsuffix .o, $(basename $(notdir $([% safepath %]_files)))))
+
+.PHONY: [% safepath %]_all [% safepath %] [% safepath %]_help [% safepath %]_clean python_generic
+
+python_generic [% safepath %]_all: [% safepath %]
+
+[% safepath %]: $([% safepath %]_deps) $([% safepath %]_objdir)/$([% safepath %]_pyname).$(SHAREDSUFFIX)
+
+$([% safepath %]_objdir)/$([% safepath %]_pyname).$(SHAREDSUFFIX): $([% safepath %]_objs)
+	@echo ">> Building Python module $([% safepath %]_pyname).$(SHAREDSUFFIX)"
+	$(VERB)$(CXX) $(CXXSHAREDFLAGS) $^ -o $@ -shared $([% safepath %]_CXXSharedLink)
+	$(VERB)$(copy_py_to_main_productstore)
+
+[% safepath %]_help:: 
+	@echo "Help for building python modules at [% path %]"
+
+[% safepath %]_clean::
+	@echo "Cleaning local working directory, $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]:"; \
+	/bin/rm -rf $(LOCALTOP)/$(SCRAM_INTwork)/[% path %]
+
+[%# We generate an object file from a _boost.cc file that we also generate automatically.
+# This rule is only for objects created from _boost.cc files created from a %.pyste...phew:
+%]
+$([% safepath %]_objdir)/%_boost.o: $([% safepath %]_srcdir)/%.pyste $([% safepath %]_py_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo  ">> Generating and compiling Boost stub for module $*"
+	python $(PYSTE_EXEC) -D_REENTRANT $([% safepath %]_CPPFLAGS) --out=$([% safepath %]_objdir)/$*_boost.cc --module=$* $<
+	$(VERB)$(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($*)" $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $([% safepath %]_objdir)/$*_boost.cc -o $@
+
+# The object file rule for all _boost.cc found in src dir:
+$([% safepath %]_objdir)/%_boost.o: $([% safepath %]_srcdir)/%_boost.cc $([% safepath %]_py_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE($*)" $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+$([% safepath %]_objdir)/[% safepath %]_PyWrapper.o: $([% safepath %]_objdir)/[% safepath %]_PyWrapper.cc $([% safepath %]_py_CONFIGDEPS)
+	@echo "Generating and compiling wrapper file: "
+	@mkdir -p $(@D)
+	@echo ">> Compiling $< "
+	$(VERB)$(CXX) -MMD  -c -DSCRAM_PYTHON_MODULE="BOOST_PYTHON_MODULE([% safepath %]_PyWrapper)" $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+
+# Generate wrapper code for the list of modules (*_boost.cc in src dir):
+$([% safepath %]_objdir)/[% safepath %]_PyWrapper.cc:
+	@echo "Generating wrapper code to put the following files in a single module called: $([% safepath %]_pyname)"
+	@exec 5>&1;						\
+	( echo "#include <boost/python.hpp>"; echo;		\
+	  for c in $([% safepath %]_classnames) ..; do				\
+	    case $$c in .. ) continue ;; esac ;			\
+	    echo "  $$c" 1>&5;					\
+	    echo "extern void init_module_$$c ();";		\
+	  done;							\
+	  echo; echo "void init_module_$([% safepath %]_pyname) () {";	\
+	  for c in $([% safepath %]_classnames) ..; do				\
+	    case $$c in .. ) continue ;; esac ;			\
+	    echo "  init_module_$$c ();";			\
+	  done;							\
+	  echo "}"; echo;					\
+	  echo "extern \"C\" void init$([% safepath %]_pyname) () {";		\
+	  echo 'boost::python::detail::init_module("$([% safepath %]_pyname)",'\
+		'init_module_$([% safepath %]_pyname));';			\
+	  echo "};";						\
+	) > $@.tmp
+	@mv $@.tmp $@
+
+# Include the object file dependencies:
+-include $(foreach d,$([% safepath %]_objs:.$(OBJEXT)=.d),$d)
+else
+python_generic [% safepath %]_all: [% safepath %]
+$([% safepath %]_objdir)/[% safepath %]_PyWrapper.cc:
+	;
+[% safepath %]:
+	@echo "No source files to compile. Nothing to be done for Python modules at [% path %]."
+endif

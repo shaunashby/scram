@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="Boost" version="1.33.1">
+ <info url="http://www.boost.org"/>
+ <lib name="boost_thread-gcc-mt"/>
+ <lib name="boost_signals-gcc-mt"/>
+<client>
+ <environment name="BOOST_BASE"/>
+ <environment name="LIBDIR" default="$BOOST_BASE/lib"/>
+ <environment name="INCLUDE" default="$BOOST_BASE/include"/>
+</client>
+<use name="sockets"/>
+</tool>
+</doc>

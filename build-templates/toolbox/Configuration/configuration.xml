@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="Configuration::Requirements" version="2.0">
+<!-- CMS-specific tools -->
+ <require name="TkOnlineSw"      version="1.2"        		url="cvs:?module=SCRAMToolBox/CMS/Online/TkOnlineSw.xml"/>
+ <require name="IGUANA"          version="IGUANA_6_15_1"        url="cvs:?module=SCRAMToolBox/CMS/Tools/IGUANA.xml"/>
+ <require name="IGNOMINY"        version="IGNOMINY_4_3_0"       url="cvs:?module=SCRAMToolBox/CMS/Tools/Ignominy.xml"/>
+ <!-- LCG AA tools -->
+ <require name="POOL"            version="POOL_2_5_0"          	url="cvs:?module=SCRAMToolBox/LCGAPP/POOL.xml"/>
+ <require name="CORAL"           version="CORAL_1_7_0"          url="cvs:?module=SCRAMToolBox/LCGAPP/CORAL.xml"/>
+ <require name="SEAL"            version="SEAL_1_9_2"           url="cvs:?module=SCRAMToolBox/LCGAPP/SEAL.xml"/>
+ <require name="RELAX"           version="RELAX_1_1_7"          url="cvs:?module=SCRAMToolBox/LCGAPP/RELAX.xml"/>
+ <require name="GENSER"          version="GENSER_1_4_1"         url="cvs:?module=SCRAMToolBox/LCGAPP/GENSER.xml"/>
+ <!--              -->
+ <require name="GEANT4"          version="8.1-p2.cms1" 		url="cvs:?module=SCRAMToolBox/LHCxx/GEANT4.xml"/>
+ <!--              -->
+ <require name="XDAQ"            version="3.7.3"                url="cvs:?module=SCRAMToolBox/DAQTools/XDAQ.xml"/>
+ <!--              -->
+ <require name="HepMC"           version="1.27.02" 	        url="cvs:?module=SCRAMToolBox/General/HepMC.xml"/>
+ <require name="HepPDT"          version="2.02.02"   		url="cvs:?module=SCRAMToolBox/General/HepPDT.xml"/>
+ <!--              -->
+ <require name="ROOT"            version="5.14.00b-pCMS1"            	url="cvs:?module=SCRAMToolBox/General/ROOT.xml"/>
+ <require name="ROOTCore"        version="5.14.00b-pCMS1"    		url="cvs:?module=SCRAMToolBox/General/ROOTCore.xml"/>
+ <require name="ROOTInteractive" version="5.14.00b-pCMS1"   		url="cvs:?module=SCRAMToolBox/General/ROOTInteractive.xml"/>
+ <require name="ROOTThread"      version="5.14.00b-pCMS1"   		url="cvs:?module=SCRAMToolBox/General/ROOTThread.xml"/>
+ <require name="ROOTMath"        version="5.14.00b-pCMS1"   		url="cvs:?module=SCRAMToolBox/General/ROOTMath.xml"/>
+ <require name="ROOTMinuit"      version="5.14.00b-pCMS1"   		url="cvs:?module=SCRAMToolBox/General/ROOTMinuit.xml"/>
+ <require name="ROOTMinuit2"     version="5.14.00b-pCMS1"   		url="cvs:?module=SCRAMToolBox/General/ROOTMinuit2.xml"/>
+ <require name="ROOTRflx"        version="5.14.00b-pCMS1"            	url="cvs:?module=SCRAMToolBox/General/ROOTRflx.xml"/>
+ <require name="ROOTCintex"      version="5.14.00b-pCMS1"            	url="cvs:?module=SCRAMToolBox/General/ROOTCintex.xml"/>
+ <!--              -->
+ <require name="fastjet"         version="2.1.0b1"              url="cvs:?module=SCRAMToolBox/General/fastjet.xml"/>
+ <require name="ktjet"           version="1.06"                 url="cvs:?module=SCRAMToolBox/General/ktjet.xml"/>
+ <!--              -->
+ <require name="meschach"        version="1.2.pCMS1"            url="cvs:?module=SCRAMToolBox/General/meschach.xml"/>
+ <!--              -->
+ <require name="pythia6_227"     version="1.0"                  url="cvs:?module=SCRAMToolBox/CERNLIB/pythia6_227.xml"/>
+ <require name="charybdis1_002"  version="1.0"            	url="cvs:?module=SCRAMToolBox/CERNLIB/charybdis1_002.xml"/>
+ <require name="toprex421"       version="1.0"            	url="cvs:?module=SCRAMToolBox/CERNLIB/toprex421.xml"/>
+ <require name="tauola27_121_1"  version="1.0"            	url="cvs:?module=SCRAMToolBox/CERNLIB/tauola27_121_1.xml"/>
+ <require name="photos215"       version="1.0"            	url="cvs:?module=SCRAMToolBox/CERNLIB/photos215.xml"/>
+ <require name="herwig6_510"     version="1.0"            	url="cvs:?module=SCRAMToolBox/CERNLIB/herwig6_510.xml"/>
+ <!--              -->
+ <require name="Castor"          version="2.1.1-4"             	url="cvs:?module=SCRAMToolBox/CERNLIB/Castor.xml"/>
+ <require name="CLHEP"           version="1.9.2.3"         	url="cvs:?module=SCRAMToolBox/LHCxx/CLHEP.xml"/>
+ <require name="GSL"             version="1.8"               	url="cvs:?module=SCRAMToolBox/LHCxx/GSL.xml"/>
+ <require name="SoQt"            version="1.3.0"  		url="cvs:?module=SCRAMToolBox/LHCxx/SoQt.xml"/>
+ <require name="OpenInventor"    version="coin3d"      		url="cvs:?module=SCRAMToolBox/LHCxx/OpenInventor.xml"/>
+ <require name="Coin3D"          version="2.4.4"            	url="cvs:?module=SCRAMToolBox/LHCxx/Coin3D.xml"/>
+ <require name="Qt"              version="3.3.6"               	url="cvs:?module=SCRAMToolBox/LHCxx/Qt.xml"/>
+ <require name="Xerces-c"        version="2.7.0"           	url="cvs:?module=SCRAMToolBox/XMLTools/Xerces-c.xml"/>
+ <require name="expat"           version="2.0.0"           	url="cvs:?module=SCRAMToolBox/XMLTools/expat.xml"/>
+ <require name="gccxml"          version="0.6.0" 	      	url="cvs:?module=SCRAMToolBox/XMLTools/gccxml.xml"/>
+ <require name="frontier_client" version="2.7.0" 		url="cvs:?module=SCRAMToolBox/CalibTools/frontier_client.xml"/>
+ <require name="dcap"            version="1.2.35"               url="cvs:?module=SCRAMToolBox/General/dcap.xml"/>
+ <require name="dcache_client"   version="1.7.0"                url="cvs:?module=SCRAMToolBox/General/dcache_client.xml"/>
+ <require name="HippoDraw"       version="1.18.1" 	        url="cvs:?module=SCRAMToolBox/General/HippoDraw.xml"/>
+ <require name="mysqlpp"         version="1.7.40" 	   	url="cvs:?module=SCRAMToolBox/General/mysqlpp.xml"/>
+ <require name="mysql"           version="5.0.18"            	url="cvs:?module=SCRAMToolBox/General/mysql.xml"/>
+ <require name="sqlite"          version="3.3.5"                url="cvs:?module=SCRAMToolBox/General/sqlite.xml"/>
+ <require name="oracle"          version="10.2.0.2"            	url="cvs:?module=SCRAMToolBox/General/oracle.xml"/>
+ <require name="QuteXMLRPC"      version="0.2"        		url="cvs:?module=SCRAMToolBox/General/QuteXMLRPC.xml"/>
+ <require name="mimetic"         version="0.8.9"              	url="cvs:?module=SCRAMToolBox/General/mimetic.xml"/>
+ <require name="pcre"            version="4.4"                  url="cvs:?module=SCRAMToolBox/General/pcre.xml"/>
+ <require name="UUID"            version="1.38"              	url="cvs:?module=SCRAMToolBox/General/UUID.xml"/>
+ <require name="sigcpp"          version="2.0.17"              	url="cvs:?module=SCRAMToolBox/General/sigcpp.xml"/>
+ <!--              -->
+ <require name="Boost"           version="1.33.1"               url="cvs:?module=SCRAMToolBox/General/Boost.xml"/>
+ <require name="Boost_signals"   version="1.33.1"               url="cvs:?module=SCRAMToolBox/General/Boost_signals.xml"/>
+ <require name="Boost_python"    version="1.33.1"         	url="cvs:?module=SCRAMToolBox/General/Boost_python.xml"/>
+ <require name="Boost_filesystem" version="1.33.1"       	url="cvs:?module=SCRAMToolBox/General/Boost_filesystem.xml"/>
+ <require name="Boost_program_options" version="1.33.1"       	url="cvs:?module=SCRAMToolBox/General/Boost_program_options.xml"/>
+ <require name="Boost_regex"     version="1.33.1"      	  	url="cvs:?module=SCRAMToolBox/General/Boost_regex.xml"/>
+ <require name="elementtree"     version="1.1"       	  	url="cvs:?module=SCRAMToolBox/General/elementtree.xml"/>
+ <require name="Python"          version="2.4.2"                url="cvs:?module=SCRAMToolBox/General/Python.xml"/>
+ <!--              -->
+ <require name="zlib"            version="1.1.4"              	url="cvs:?module=SCRAMToolBox/General/zlib.xml"/>
+ <require name="bz2lib"          version="1.0.2"            	url="cvs:?module=SCRAMToolBox/General/bz2lib.xml"/>
+ <require name="OpenSSL"         version="0.9.7d"           	url="cvs:?module=SCRAMToolBox/General/OpenSSL.xml"/>
+ <require name="Graphviz"        version="1.9"          	url="cvs:?module=SCRAMToolBox/General/Graphviz.xml"/>
+ <require name="Curl"	         version="7.15.3"     		url="cvs:?module=SCRAMToolBox/General/Curl.xml"/>
+ <require name="OpenGL"          version="XFree4.2"   		url="cvs:?module=SCRAMToolBox/System/OpenGL.xml"/>
+ <require name="X11"	         version="R6"     	        url="cvs:?module=SCRAMToolBox/System/X11.xml"/>
+ <require name="Sockets"         version="1.0" 	     		url="cvs:?module=SCRAMToolBox/System/Sockets.xml"/>
+ <require name="simage"	         version="1.6.1"     		url="cvs:?module=SCRAMToolBox/System/simage.xml"/>
+ <require name="jpeg"	         version="6b" 	     		url="cvs:?module=SCRAMToolBox/System/jpeg.xml"/>
+ <!--              -->
+ <require name="cxxcompiler"     version="3.2.3"      		url="cvs:?module=SCRAMToolBox/CompilerTools/CXX/cxxcompiler.xml"/>
+ <require name="ccompiler"       version="3.2.3"      		url="cvs:?module=SCRAMToolBox/CompilerTools/C/ccompiler.xml"/>
+ <require name="f77compiler"     version="3.2.3" 	    	url="cvs:?module=SCRAMToolBox/CompilerTools/Fortran/f77compiler.xml"/>
+ <require name="jcompiler"	 version="1.5.0.p6"      	url="cvs:?module=SCRAMToolBox/CompilerTools/Java/jcompiler.xml"/>
+ <!--              -->
+ <require name="OVAL"            version="3_5_0"              	url="cvs:?module=SCRAMToolBox/TestingTools/OVAL.xml"/>
+ <require name="valgrind"        version="3.2.1-cms2"          	url="cvs:?module=SCRAMToolBox/TestingTools/valgrind.xml"/>
+ <require name="cppunit"         version="1.10.2"          	url="cvs:?module=SCRAMToolBox/TestingTools/cppunit.xml"/>
+ <require name="qmtest"          version="2.3.0" 	       	url="cvs:?module=SCRAMToolBox/TestingTools/qmtest.xml"/>
+ <require name="rulechecker"     version="2.6"            	url="cvs:?module=SCRAMToolBox/QualityAssuranceTools/Rulechecker.xml"/>
+ <!--              -->
+ <require name="doxygen"         version="1.4.1"                url="cvs:?module=SCRAMToolBox/General/doxygen.xml"/>
+ <require name="glimpse"         version="4.18.5"                url="cvs:?module=SCRAMToolBox/General/glimpse.xml"/>
+</doc>

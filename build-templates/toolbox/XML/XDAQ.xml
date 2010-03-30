@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="XDAQ" version="3.7.3">
+<info url="http://home.cern.ch/xdaq"/>
+<lib name="toolbox"/>
+<lib name="xdaq"/>
+<lib name="xoap"/>
+<lib name="xgi"/>
+<lib name="xdata"/>
+<lib name="cgicc"/>
+<lib name="log4cplus"/>
+<lib name="xcept"/>
+<lib name="udpappender"/>
+<lib name="peer"/>
+<lib name="xmlappender"/>
+<lib name="asyncresolv"/>
+<lib name="i2outils"/>
+<lib name="ptfifo"/>
+<lib name="pthttp"/>
+<lib name="pttcp"/>
+<client>
+ <environment name="XDAQ_BASE"/>
+ <environment name="LIBDIR" default="$XDAQ_BASE/lib"/>
+ <environment name="BINDIR" default="$XDAQ_BASE/bin"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/toolbox/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/toolbox/include/linux"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/toolbox/include/solaris"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/interface/shared/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/interface/evb/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/xdaq/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/xdaq/include/solaris"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/xoap/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/extern/i2o/include"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/extern/i2o/include/i2o"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/extern/i2o/include/i2o/shared"/>
+ <environment name="INCLUDE" default="$XDAQ_BASE/daq/extern/log4cplus/linuxx86/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/pt/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/i2o/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/i2o/include/i2o"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/xgi/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/xdata/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/xcept/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/extern/cgicc/linuxx86/include"/>
+ <environment name="INCLUDE" value="$XDAQ_BASE/daq/extern/asyncresolv/linuxx86/include"/>
+</client>
+<use name="xerces-c"/>
+<use name="sockets"/>
+<use name="mimetic"/>
+<runtime name="XDAQ_OS" value="linux"/>
+<runtime name="XDAQ_PLATFORM" value="x86"/>
+<runtime name="PATH" value="$BINDIR" type="path"/>
+<runtime name="XDAQ_ROOT" value="$XDAQ_BASE"/>
+<flags CPPDEFINES="SOAP__ LITTLE_ENDIAN__"/>
+<flags CPPDEFINES="linux"/>
+</tool>
+</doc>

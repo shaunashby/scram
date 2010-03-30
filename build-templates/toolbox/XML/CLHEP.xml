@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="CLHEP" version="1.9.2.3">
+<info url="http://wwwinfo.cern.ch/asd/lhc++/clhep"/>
+<lib name="CLHEP"/>
+<client>
+ <environment name="CLHEP_BASE"/>
+ <environment name="LIBDIR" default="$CLHEP_BASE/lib"/>
+ <environment name="INCLUDE" default="$CLHEP_BASE/include"/>
+</client>
+<runtime name="CLHEP_PARAM_PATH" value="$CLHEP_BASE"/>
+</tool>
+</doc>

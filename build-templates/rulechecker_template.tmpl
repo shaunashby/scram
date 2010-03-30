@@ -1,0 +1,162 @@
+[%# -*-Makefile-*-
+#____________________________________________________________________ 
+# Inserted from file: rulechecker_template.tmpl
+#____________________________________________________________________ 
+#  
+# Author: Shahzad Muzaffar <Shahzad Muzaffar@cern.ch>
+# Update: 2005-05-27 11:15:37+0100
+# Revision: $Id: rulechecker_template.tmpl,v 1.1 2005/05/27 09:25:07 muzaffar Exp $ 
+#
+# Copyright: 2004 (C) Shahzad Muzaffar
+#
+#--------------------------------------------------------------------
+%]
+# This template is not complete. It assumes that it is inculded from the library_template.tmpl.
+
+ifneq ($(strip $(CMS_RULECHECKER)),)
+[% safepath %]_RULE_VIOL_SKIP_FILES := [% core.flags("RULE_VIOL_SKIP_FILES") %] 
+[% safepath %]_RULES_IGNORED := [% core.flags("RULES_IGNORED") %]
+[% safepath %]_viol_cxxfilesuffixes:= cc cpp cxx C c
+[% safepath %]_viol_cxxfiles += $(notdir $(wildcard $(foreach dir,$([% safepath %]_filesrcdirs),$(foreach ext,$([% safepath %]_viol_cxxfilesuffixes),$(dir)/*.$(ext)))))
+ifneq ($(strip $([% safepath %]_RULE_VIOL_SKIP_FILES)),)
+  [% safepath %]_viol_cxxfiles := $(filter-out $([% safepath %]_RULE_VIOL_SKIP_FILES), $([% safepath %]_viol_cxxfiles))
+endif
+ifneq ($(strip $([% safepath %]_SKIP_FILES)),)
+  [% safepath %]_viol_cxxfiles := $(filter-out $([% safepath %]_SKIP_FILES), $([% safepath %]_viol_cxxfiles))
+endif
+[% safepath %]_voilation_files := $(addprefix $([% safepath %]_objdir)/, $(addsuffix .$(RULECHECKER_VIOLATION_EXT), $(basename $(notdir $([% safepath %]_viol_cxxfiles)))))
+[% safepath %]_preprocess_files := $(addprefix $([% safepath %]_objdir)/, $(addsuffix .$(RULECHECKER_PREPROCESS_EXT), $(basename $(notdir $([% safepath %]_viol_cxxfiles)))))
+[% safepath %]_rulecheck  := [% safepath %]_rulecheck_init $([% safepath %]_preprocess_files) [% safepath %]_run_rulechecker
+
+.PHONY : [% safepath %]_rulecheck_init [% safepath %]_run_rulechecker
+
+[% safepath %]_rulecheck_init:
+	@mkdir -p $([% safepath %]_objdir)
+	@touch $([% safepath %]_objdir)/xxx.i $([% safepath %]_objdir)/xxx.ii $([% safepath %]_objdir)/xxx.$(RULECHECKER_VIOLATION_EXT)
+	@rm -f $([% safepath %]_objdir)/*.i $([% safepath %]_objdir)/*.ii $([% safepath %]_objdir)/*.$(RULECHECKER_VIOLATION_EXT)
+	@rm -f $([% safepath %]_objdir)/config_FILES_TO_ANALYZE; touch $([% safepath %]_objdir)/config_FILES_TO_ANALYZE
+	@touch $([% safepath %]_objdir)/quickExecution
+	@if [ -d $(LOCALTOP)/doc/RuleCheck/[% path %] ] ; then	\
+	  rm -rf $(LOCALTOP)/doc/RuleCheck/[% path %]; \
+	fi
+	@mkdir -p $(LOCALTOP)/doc/RuleCheck/[% path %]
+
+[% safepath %]_run_rulechecker:
+	@cp -f $([% safepath %]_objdir)/config_FILES_TO_ANALYZE $([% safepath %]_objdir)/config_FILES_TO_ANALYZE.orig
+	@cd  $([% safepath %]_objdir); for file in `cat $([% safepath %]_objdir)/config_FILES_TO_ANALYZE.orig | awk '{print $$1}'`; do 	\
+	  line=`grep "^$$file " config_FILES_TO_ANALYZE.orig`;				\
+	  echo ">> Applying patch to $$file"; 						\
+	  patch4cms.pl $$file; 								\
+	  echo ">> patch done. running rulechecker ..."; 				\
+	  rm -f config_FILES_TO_ANALYZE; 						\
+	  echo "$$line" > config_FILES_TO_ANALYZE;              			\
+	  rm -f config_RULES_IGNORED; 							\
+	  if [ -f $$file.RULES_IGNORED ] ; then						\
+	    mv $$file.RULES_IGNORED config_RULES_IGNORED;				\
+	  fi;										\
+	  java $$CMS_CODING_RULES || echo "$$file: Failed running rule checker";	\
+	  if [ -f "$$file"i ] ; then							\
+	    rm -f "$$file"i;								\
+	  fi;										\
+	done
+	@rm -f $([% safepath %]_objdir)/config_RULES_IGNORED
+	@for file in $([% safepath %]_voilation_files); do 				\
+	  if [ -s $$file ] ; then 							\
+	    mv $$file $(LOCALTOP)/doc/RuleCheck/[% path %]; 				\
+	  else										\
+	    rm -f $$file;								\
+	  fi;										\
+	done
+	
+$([% safepath %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safepath %]_srcdir)/%.cc $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Preprocessing for rule checker $< "
+	$(VERB)$(CXX) -MMD  -E $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+	$(VERB)echo ">> Adding $*.$(RULECHECKER_PREPROCESS_EXT) to config_FILES_TO_ANALYZE"
+	@if [ -f $([% safepath %]_srcdir)/../interface/$*.h ] ; then \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ; \
+	else \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ;\
+	fi
+	@rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED
+	@for rule in `echo "$([% safepath %]_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.cc:" | sed 's|$*.cc:||' | tr ',' '\n'` ; do \
+	  echo "$$rule" >> $@.RULES_IGNORED;\
+	done
+	@if [ ! -s $@.RULES_IGNORED ] ; then 	\
+	  rm -f $@.RULES_IGNORED;		\
+	fi
+	
+
+$([% safepath %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safepath %]_srcdir)/%.cpp $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Preprocessing for rule checker $< "
+	$(VERB)$(CXX) -MMD  -E $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+	$(VERB)echo ">> Adding $*.$(RULECHECKER_PREPROCESS_EXT) to config_FILES_TO_ANALYZE"
+	@if [ -f $([% safepath %]_srcdir)/../interface/$*.h ] ; then \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ; \
+	else \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ;\
+	fi
+	@rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED
+	@for rule in `echo "$([% safepath %]_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.cpp:" | sed 's|$*.cpp:||' | tr ',' '\n'` ; do \
+	  echo "$$rule" >> $@.RULES_IGNORED;\
+	done
+	@if [ ! -s $@.RULES_IGNORED ] ; then 	\
+	  rm -f $@.RULES_IGNORED;		\
+	fi
+
+$([% safepath %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safepath %]_srcdir)/%.cxx $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Preprocessing for rule checker $< "
+	$(VERB)$(CXX) -MMD  -E $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+	$(VERB)echo ">> Adding $*.$(RULECHECKER_PREPROCESS_EXT) to config_FILES_TO_ANALYZE"
+	@if [ -f $([% safepath %]_srcdir)/../interface/$*.h ] ; then \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ; \
+	else \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ;\
+	fi
+	@rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED
+	@for rule in `echo "$([% safepath %]_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.cxx:" | sed 's|$*.cxx:||' | tr ',' '\n'` ; do \
+	  echo "$$rule" >> $@.RULES_IGNORED;\
+	done
+	@if [ ! -s $@.RULES_IGNORED ] ; then 	\
+	  rm -f $@.RULES_IGNORED;		\
+	fi
+
+$([% safepath %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safepath %]_srcdir)/%.C $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Preprocessing for rule checker $< "
+	$(VERB)$(CXX) -MMD  -E $([% safepath %]_CPPFLAGS) $([% safepath %]_CXXFLAGS) $([% safepath %]_CXXOPTIMISEDFLAGS) $(CXXSHAREDOBJECTFLAGS) $< -o $@
+	$(VERB)echo ">> Adding $*.$(RULECHECKER_PREPROCESS_EXT) to config_FILES_TO_ANALYZE"
+	@if [ -f $([% safepath %]_srcdir)/../interface/$*.h ] ; then \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ; \
+	else \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ;\
+	fi
+	@rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED
+	@for rule in `echo "$([% safepath %]_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.C:" | sed 's|$*.C:||' | tr ',' '\n'` ; do \
+	  echo "$$rule" >> $@.RULES_IGNORED;\
+	done
+	@if [ ! -s $@.RULES_IGNORED ] ; then 	\
+	  rm -f $@.RULES_IGNORED;		\
+	fi
+
+# For C:
+$([% safepath %]_objdir)/%.$(RULECHECKER_PREPROCESS_EXT): $([% safepath %]_srcdir)/%.c $([% safepath %]_CONFIGDEPS)
+	@mkdir -p $(@D)
+	@echo ">> Preprocessing for rule checker $< "
+	$(VERB)$(CC)  -E $([% safepath %]_CPPFLAGS) $([% safepath %]_CFLAGS) $([% safepath %]_COPTIMISEDFLAGS) $(CSHAREDOBJECTFLAGS) $< -o $@
+	$(VERB)echo ">> Adding $*.$(RULECHECKER_PREPROCESS_EXT) to config_FILES_TO_ANALYZE"
+	@if [ -f $([% safepath %]_srcdir)/../interface/$*.h ] ; then \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/../interface/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ; \
+	else \
+	  echo "$*.$(RULECHECKER_PREPROCESS_EXT) $< $([% safepath %]_srcdir)/$*.h *$*.$(RULECHECKER_VIOLATION_EXT)*" >> $([% safepath %]_objdir)/config_FILES_TO_ANALYZE ;\
+	fi
+	@rm -f $@.RULES_IGNORED; touch $@.RULES_IGNORED
+	@for rule in `echo "$([% safepath %]_RULES_IGNORED)" | tr ' ' '\n' | grep "$*.c:" | sed 's|$*.c:||' | tr ',' '\n'` ; do \
+	  echo "$$rule" >> $@.RULES_IGNORED;\
+	done
+	@if [ ! -s $@.RULES_IGNORED ] ; then 	\
+	  rm -f $@.RULES_IGNORED;		\
+	fi
+endif

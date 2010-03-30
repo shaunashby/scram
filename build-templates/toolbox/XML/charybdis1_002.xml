@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="charybdis1_002" version="1.0">
+ <lib name="charybdis1_002"/>
+ <lib name="dummy_charybdis1_002"/>
+ <use name="genser"/>
+ <use name="f77compiler"/>
+</tool>
+</doc>

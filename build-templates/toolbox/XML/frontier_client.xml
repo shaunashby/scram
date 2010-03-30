@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="frontier_client" version="2.7.0">
+<lib name="frontier_client"/>
+<client>
+ <environment name="FRONTIER_CLIENT_BASE"/>
+ <environment name="INCLUDE" default="$FRONTIER_CLIENT_BASE/include"/>
+ <environment name="LIBDIR"  default="$FRONTIER_CLIENT_BASE/lib"/>
+</client>
+<use name="zlib"/>
+<use name="expat"/>
+</tool>
+</doc>

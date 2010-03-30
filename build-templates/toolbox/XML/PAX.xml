@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<doc type="BuildSystem::ToolDoc" version="1.0">
+<tool name="PAX" version="2.00.00">
+<lib name="PAX"/>
+<client>
+ <environment name="PAX_BASE"/>
+ <environment name="LIBDIR" default="$PAX_BASE/lib"/>
+ <environment name="INCLUDE" default="$PAX_BASE"/>
+ <environment name="INCLUDE" default="$PAX_BASE/interface"/>
+</client>
+<use name="ROOT"/>
+<use name="clhep"/>
+<flags CPPDEFINES="PAX_ROOT_IO"/>
+</tool>
+</doc>
